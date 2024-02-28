@@ -1,3 +1,3 @@
-# StoreSelectionConfig
+# StoreRotationConfig
 
-Configure items in store selection/rotation.
+Configure number of purchasable items in store rotation.

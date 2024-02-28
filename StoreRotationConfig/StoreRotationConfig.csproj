@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
-        <AssemblyName>StoreSelectionConfig</AssemblyName>
-        <Description>Configure items in store selection/rotation.</Description>
+        <AssemblyName>StoreRotationConfig</AssemblyName>
+        <Description>Configure number of purchasable items in store rotation.</Description>
         <Version>1.0.0</Version>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
