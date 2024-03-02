@@ -1,3 +1,10 @@
+### [1.0.1]
+
+Hotfix for 'stockAll' setting.
+- Fixed indexing error, `stockAll` setting should work properly now.
+	- Forgot it wasn't a standard iteration, and that items in the list were removed with every cycle, so it would inevitably try to access an index out of bounds as `i` increased.
+	- More changes were made changing the version number than fixing this issue...
+
 ### [1.0.0]
 
 Initial release.

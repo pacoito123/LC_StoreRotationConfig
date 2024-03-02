@@ -23,7 +23,7 @@ namespace StoreRotationConfig
     [BepInPlugin(GUID, PluginInfo.PLUGIN_NAME, VERSION)]
     public class Plugin : BaseUnityPlugin
     {
-        private const string GUID = "pacoito.StoreRotationConfig", VERSION = "1.0.0";
+        private const string GUID = "pacoito.StoreRotationConfig", VERSION = "1.0.1";
         public static Config Settings { get; internal set; }
 
         private void Awake()
@@ -74,7 +74,7 @@ namespace StoreRotationConfig
                     break;
                 }
 
-                int index = !stockAll ? random.Next(0, list.Count) : i;
+                int index = !stockAll ? random.Next(0, list.Count) : 0;
                 __instance.ShipDecorSelection.Add(list[index]);
                 list.RemoveAt(index);
             }
