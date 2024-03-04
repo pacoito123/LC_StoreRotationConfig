@@ -1,3 +1,9 @@
+### [1.1.1]
+
+Switch to 'CSync' library fork.
+- Switched to the [CSync fork](https://thunderstore.io/c/lethal-company/p/Owen3H/CSync/) maintained by [Lordfirespeed](https://github.com/Lorefirespeed).
+	- Thanks for the heads-up ([#1](https://github.com/pacoito123/LC_StoreRotationConfig/issues/1)), [Fl4sHNox](https://github.com/Fl4sHNoX)!
+
 ### [1.1.0]
 
 Configuration now done through 'CSync' library; some refactoring and tweaks.

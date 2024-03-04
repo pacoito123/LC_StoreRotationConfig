@@ -7,7 +7,7 @@ using HarmonyLib;
 namespace StoreRotationConfig
 {
     [BepInPlugin(GUID, PLUGIN_NAME, VERSION)]
-    [BepInDependency("io.github.CSync", BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency("com.sigurd.csync", BepInDependency.DependencyFlags.HardDependency)]
     public class Plugin : BaseUnityPlugin
     {
         internal const string GUID = "pacoito.StoreRotationConfig", PLUGIN_NAME = "StoreRotationConfig", VERSION = "1.1.0";

@@ -1,10 +1,10 @@
 {
 	"name": "StoreRotationConfig",
-	"version_number": "1.1.0",
+	"version_number": "1.1.1",
 	"website_url": "https://github.com/pacoito123/LC_StoreRotationConfig",
 	"description": "Configure the number of purchasable items in each store rotation, or simply show them all.",
 	"dependencies": [
 		"BepInEx-BepInExPack-5.4.2100",
-		"Owen3H-CSync-2.1.0"
+		"Sigurd-CSync-3.1.0"
 	]
 }

@@ -15,7 +15,7 @@ Simple mod that adds configurability to the number of items that show up in the 
 
 Intended for when there's a large number of modded items (suits, furniture, etc.) in the store, and the vanilla store rotation makes it too unlikely to ever see a desired item in stock.
 
-Uses [CSync](https://thunderstore.io/c/lethal-company/p/Owen3H/CSync/) by [Owen3H](https://github.com/Owen3H) to sync config settings between host and clients.
+Uses [CSync](https://thunderstore.io/c/lethal-company/p/Sigurd/CSync/) by [Owen3H](https://github.com/Owen3H) (forked by [Lordfirespeed](https://github.com/Lorefirespeed)) to sync config settings between host and clients.
 
 ## Configuration
 
