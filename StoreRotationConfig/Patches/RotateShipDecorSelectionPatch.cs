@@ -1,15 +1,17 @@
+using HarmonyLib;
 using System;
 using System.Collections.Generic;
-using HarmonyLib;
 
-// Patches for 'Terminal.RotateShipDecorSelection()'.
 namespace StoreRotationConfig.Patches
 {
+    /// <summary>
+    ///     Patch for 'Terminal.RotateShipDecorSelection()' method; replaces vanilla unless only the client has this mod installed.
+    /// </summary>
     [HarmonyPatch(typeof(Terminal), methodName: nameof(Terminal.RotateShipDecorSelection))]
-    public static class RotateShipDecorSelectionPatch
+    internal class RotateShipDecorSelectionPatch
     {
         // Cached list of every purchasable, non-persistent item available in the store.
-        private static readonly List<UnlockableItem> allItems = new(StartOfRound.Instance.unlockablesList.unlockables.Count);
+        private static List<UnlockableItem> allItems;
 
         [HarmonyPriority(Priority.VeryHigh)]
         private static bool Prefix(Terminal __instance)
@@ -24,17 +26,17 @@ namespace StoreRotationConfig.Patches
             }
 
             // Obtain values from config file (synced).
-            int maxItems = Config.Instance.MAX_ITEMS,
-                minItems = Config.Instance.MIN_ITEMS;
-            bool stockAll = Config.Instance.STOCK_ALL,
-                sortItems = Config.Instance.SORT_ITEMS;
+            int maxItems = Plugin.Settings.MAX_ITEMS,
+                minItems = Plugin.Settings.MIN_ITEMS;
+            bool stockAll = Plugin.Settings.STOCK_ALL,
+                sortItems = Plugin.Settings.SORT_ITEMS;
             // ...
 
-            // Check if store rotation list is empty (first load).
-            if (__instance.ShipDecorSelection.Count == 0)
+            // Check if either 'Terminal.ShipDecorSelection' or 'allItems' list is empty (first load).
+            if (__instance.ShipDecorSelection.Count == 0 || allItems.Count == 0)
             {
-                // Clear any items from previous lobbies/sessions (just in case).
-                allItems.Clear();
+                // Initialize 'allItems' list with specified capacity.
+                allItems = new(StartOfRound.Instance.unlockablesList.unlockables.Count);
 
                 // Fill 'allItems' list with every purchasable, non-persistent item.
                 StartOfRound.Instance.unlockablesList.unlockables.DoIf(
@@ -55,7 +57,7 @@ namespace StoreRotationConfig.Patches
                 }
             }
 
-            // Return false if 'stockAll' setting is enabled, since store rotation list is already filled at this point.
+            // Return false if 'stockAll' setting is enabled, since store rotation list has already been filled at this point.
             if (stockAll)
             {
                 return false;
@@ -73,21 +75,17 @@ namespace StoreRotationConfig.Patches
 
             // Create 'storeRotation' list (for sorting), and clone 'allItems' list (for item selection).
             List<UnlockableItem> storeRotation = new(num), allItemsClone = new(allItems);
-            for (int i = 0; i < num; i++)
-            {
-                // Exit loop if all items have been added to the store rotation.
-                if (allItemsClone.Count < 1)
-                {
-                    break;
-                }
 
+            // Iterate for every item to add to the store rotation (and exit early if there are no more items in 'allItemsClone' list).
+            for (int i = 0; i < num && allItemsClone.Count != 0; i++)
+            {
                 // Add random item to 'storeRotation' list, and remove it from 'allItems' cloned list.
                 int index = random.Next(0, allItemsClone.Count);
                 storeRotation.Add(allItemsClone[index]);
                 allItemsClone.RemoveAt(index);
             }
 
-            // Sort store selection alphabetically if 'sortItems' is enabled.
+            // Sort 'storeRotation' list alphabetically if 'sortItems' is enabled.
             if (sortItems && storeRotation.Count > 1)
             {
                 storeRotation.Sort((x, y) => string.Compare(x.unlockableName, y.unlockableName));
@@ -96,7 +94,7 @@ namespace StoreRotationConfig.Patches
             // Fill store rotation with every item in 'storeRotation' list.
             storeRotation.ForEach(item => __instance.ShipDecorSelection.Add(item.shopSelectionNode));
 
-            // Return false to avoid executing vanilla method.
+            // Return false to stop vanilla method from executing.
             return false;
         }
     }

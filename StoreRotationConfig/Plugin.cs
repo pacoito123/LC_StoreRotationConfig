@@ -1,19 +1,25 @@
-﻿using System;
-using System.Reflection;
-using BepInEx;
+﻿using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
+using System;
+using System.Reflection;
 
 namespace StoreRotationConfig
 {
+    /// <summary>
+    ///     Simple mod that adds configurability to the number of items that show up in the store every week.
+    /// </summary>
     [BepInPlugin(GUID, PLUGIN_NAME, VERSION)]
     [BepInDependency("com.sigurd.csync", BepInDependency.DependencyFlags.HardDependency)]
     public class Plugin : BaseUnityPlugin
     {
-        internal const string GUID = "pacoito.StoreRotationConfig", PLUGIN_NAME = "StoreRotationConfig", VERSION = "1.1.0";
-        public static Config Settings { get; internal set; }
+        internal const string GUID = "pacoito.StoreRotationConfig", PLUGIN_NAME = "StoreRotationConfig", VERSION = "1.1.2";
+        internal static ManualLogSource StaticLogger { get; private set; }
 
-        public static ManualLogSource StaticLogger;
+        /// <summary>
+        ///     Plugin configuration instance.
+        /// </summary>
+        public static Config Settings { get; private set; }
 
         private void Awake()
         {
@@ -22,15 +28,13 @@ namespace StoreRotationConfig
             try
             {
                 Settings = new(Config);
+                _ = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), $"{GUID}");
 
-                Harmony harmony = new(PLUGIN_NAME);
-                harmony.PatchAll(Assembly.GetExecutingAssembly());
-
-                StaticLogger.LogInfo($"{PLUGIN_NAME} is loaded!");
+                StaticLogger.LogInfo($"{PLUGIN_NAME} loaded!");
             }
             catch (Exception e)
             {
-                StaticLogger.LogError($"Error while initializing: '{e.Message}'\nSource: '{e.Source}'");
+                StaticLogger.LogError($"Error while initializing '{PLUGIN_NAME}': {e}");
             }
         }
     }

@@ -1,3 +1,20 @@
+### [1.1.2]
+
+Minor adjustments to project and code.
+- Switched from using `Config.Instance` to the actual `Config` instance in the `Plugin` class, mainly in preparation for eventually updating to `CSync v4`.
+- Clarified some stuff in `README.md`, mostly in the compatibility section.
+	- Verified compatibility with both `v45` _and_ `v50` (only `v49` had been previously tested).
+	- Added mention of the `Terminal.ShipDecorSelection` list intentionally not being modified when joining a lobby without the mod installed on the host computer.
+- Modified `StoreRotationConfig.csproj` to include additional features.
+	- Debug symbols are now embedded into the built `StoreRotationConfig.dll` plugin.
+		- Enables better stack traces without having to include `StoreRotationConfig.pdb` in every release.
+		- Also hides user file paths, in case that's a concern when reporting a bug.
+	- `LICENSE` file ([MIT](https://github.com/pacoito123/LC_StoreRotationConfig/blob/v1.1.2/LICENSE)) is now packaged into the built `StoreRotationConfig.dll` plugin.
+	- `IDE0051` warning is now ignored (to remove unused warning from `Plugin.Awake()` method).
+- Added a few more missing comments.
+	- Added comments to the individual configuration entries in `Config` class.
+	- Added comments briefly describing the `Config`, `Plugin`, and `RotateShipDecorSelection` classes.
+
 ### [1.1.1]
 
 Switch to 'CSync' library fork.
