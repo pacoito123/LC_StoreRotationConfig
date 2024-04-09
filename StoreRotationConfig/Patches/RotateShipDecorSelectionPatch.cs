@@ -25,11 +25,11 @@ namespace StoreRotationConfig.Patches
                 return true;
             }
 
-            // Obtain values from config file (synced).
+            // Obtain values from config file.
             int maxItems = Plugin.Settings.MAX_ITEMS,
                 minItems = Plugin.Settings.MIN_ITEMS;
             bool stockAll = Plugin.Settings.STOCK_ALL,
-                sortItems = Plugin.Settings.SORT_ITEMS;
+                sortItems = Plugin.Settings.SORT_ITEMS.Value;
             // ...
 
             // Check if either 'Terminal.ShipDecorSelection' or 'allItems' list is empty (first load).

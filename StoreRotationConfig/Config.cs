@@ -8,30 +8,37 @@ using UnityEngine;
 namespace StoreRotationConfig
 {
     /// <summary>
-    ///     Class containing and defining plugin configuration options, synchronized between host and clients.
+    ///     Class containing and defining plugin configuration options, with some of them being synchronized between host and clients.
     /// </summary>
     [DataContract]
     public class Config : SyncedConfig<Config>
     {
         /// <summary>
-        ///     Minimum number of items in store rotation.
+        ///     Minimum number of items in the store rotation.
         /// </summary>
         [DataMember] public SyncedEntry<int> MIN_ITEMS { get; private set; }
 
         /// <summary>
-        ///     Maximum number of items in store rotation.
+        ///     Maximum number of items in the store rotation.
         /// </summary>
         [DataMember] public SyncedEntry<int> MAX_ITEMS { get; private set; }
 
         /// <summary>
-        ///     Make every item available in store rotation.
+        ///     Make every item available in the store rotation.
         /// </summary>
         [DataMember] public SyncedEntry<bool> STOCK_ALL { get; private set; }
 
         /// <summary>
-        ///     Sort every item in store rotation alphabetically.
+        ///     Sort every item in the store rotation alphabetically.
         /// </summary>
-        [DataMember] public SyncedEntry<bool> SORT_ITEMS { get; private set; }
+        public ConfigEntry<bool> SORT_ITEMS { get; private set; }
+
+        /// <summary>
+        ///     [EXPERIMENTAL] Adapt terminal scroll to the number of lines in the current terminal page, instead of a flat value.
+        ///     Should fix cases where scrolling skips over several lines, which is especially noticeable when enabling 'stockAll'
+        ///     with a large number of items in the store.
+        /// </summary>
+        public ConfigEntry<bool> RELATIVE_SCROLL { get; private set; }
 
         /// <summary>
         ///     Constructor for initializing plugin configuration. Registers instance in 'ConfigManager', binds entries to configuration file,
@@ -44,10 +51,14 @@ namespace StoreRotationConfig
             ConfigManager.Register(this);
 
             // Bind config entries to config file.
-            MIN_ITEMS = cfg.BindSyncedEntry("General", "minItems", 8, "Minimum number of items in store rotation.");
-            MAX_ITEMS = cfg.BindSyncedEntry("General", "maxItems", 12, "Maximum number of items in store rotation.");
-            STOCK_ALL = cfg.BindSyncedEntry("General", "stockAll", false, "Make every item available in store rotation.");
-            SORT_ITEMS = cfg.BindSyncedEntry("General", "sortItems", false, "Sort every item in store rotation alphabetically.");
+            MIN_ITEMS = cfg.BindSyncedEntry("General", "minItems", 8, "Minimum number of items in the store rotation.");
+            MAX_ITEMS = cfg.BindSyncedEntry("General", "maxItems", 12, "Maximum number of items in the store rotation.");
+            STOCK_ALL = cfg.BindSyncedEntry("General", "stockAll", false, "Make every item available in the store rotation.");
+
+            SORT_ITEMS = cfg.Bind("Miscellaneous", "sortItems", false, "Sort every item in the store rotation alphabetically.");
+            RELATIVE_SCROLL = cfg.Bind("Miscellaneous", "relativeScroll", false, "[EXPERIMENTAL] Adapt terminal scroll to the "
+                + "number of lines in the current terminal page, instead of a flat value. Should fix cases where scrolling skips over several lines, which is "
+                + "especially noticeable when enabling 'stockAll' with a large number of items in the store.");
             // ...
 
             // Function to run once config is synced.

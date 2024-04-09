@@ -1,3 +1,12 @@
+### [1.2.0]
+
+Minor (optional) tweak to terminal scrolling.
+- Added experimental `relativeScroll` client-side setting (off by default).
+	- Adapts the terminal scroll amount to the number of lines in the current terminal page.
+	- Should fix an edge case where scrolling would skip over several lines if there were too many items in the store rotation.
+- Changed `sortItems` setting to be client-side instead of synced.
+- Added note to `README.md` regarding using `CSync v4` with this mod.
+
 ### [1.1.2]
 
 Minor adjustments to project and code.
