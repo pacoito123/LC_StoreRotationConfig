@@ -1,14 +1,14 @@
 using BepInEx.Configuration;
+using CSync.Extensions;
 using CSync.Lib;
-using CSync.Util;
 using System.Runtime.Serialization;
-using Unity.Netcode;
-using UnityEngine;
+// using Unity.Netcode;
+// using UnityEngine;
 
 namespace StoreRotationConfig
 {
     /// <summary>
-    ///     Class containing and defining plugin configuration options, with some of them being synchronized between host and clients.
+    ///     Class containing and defining plugin configuration options, with some entries being synced between host and clients.
     /// </summary>
     [DataContract]
     public class Config : SyncedConfig<Config>
@@ -16,22 +16,22 @@ namespace StoreRotationConfig
         /// <summary>
         ///     Minimum number of items in the store rotation.
         /// </summary>
-        [DataMember] public SyncedEntry<int> MIN_ITEMS { get; private set; }
+        [field: DataMember] public SyncedEntry<int> MIN_ITEMS { get; private set; }
 
         /// <summary>
         ///     Maximum number of items in the store rotation.
         /// </summary>
-        [DataMember] public SyncedEntry<int> MAX_ITEMS { get; private set; }
+        [field: DataMember] public SyncedEntry<int> MAX_ITEMS { get; private set; }
 
         /// <summary>
         ///     Make every item available in the store rotation.
         /// </summary>
-        [DataMember] public SyncedEntry<bool> STOCK_ALL { get; private set; }
+        [field: DataMember] public SyncedEntry<bool> STOCK_ALL { get; private set; }
 
         /// <summary>
         ///     Include already-purchased items in the store rotation.
         /// </summary>
-        [DataMember] public SyncedEntry<bool> STOCK_PURCHASED { get; private set; }
+        [field: DataMember] public SyncedEntry<bool> STOCK_PURCHASED { get; private set; }
 
         /// <summary>
         ///     Sort every item in the store rotation alphabetically.
@@ -45,9 +45,15 @@ namespace StoreRotationConfig
         /// </summary>
         public ConfigEntry<bool> RELATIVE_SCROLL { get; private set; }
 
+        /* /// <summary>
+        ///     Whether config has been successfully synced with the host or not; reset upon returning to main menu.
+        /// </summary>
+        /// <remarks>Not really needed, mostly here in case 'CSync' reimplements the ability to join hosts who don't have this mod installed.</remarks>
+        public bool ConfigSynced { get; internal set; } = false; */
+
         /// <summary>
         ///     Constructor for initializing plugin configuration. Registers instance in 'ConfigManager', binds entries to configuration file,
-        ///     and defines code to execute after a successful synchronization.
+        ///     and defines code to execute after a successful sync.
         /// </summary>
         /// <param name="cfg">BepInEx configuration file.</param>
         public Config(ConfigFile cfg) : base(Plugin.GUID)
@@ -68,19 +74,22 @@ namespace StoreRotationConfig
             // ...
 
             // Function to run once config is synced.
-            SyncComplete += new((_, _) =>
+            /* InitialSyncCompleted += new((_, _) =>
             {
                 // Check if the local client running is the server host.
                 if (!NetworkManager.Singleton.IsHost && !NetworkManager.Singleton.IsServer)
                 {
                     Plugin.StaticLogger.LogInfo("Config synced! ⭮ Rotating store...");
 
+                    // Set config sync status to true (successfully synced).
+                    ConfigSynced = true;
+
                     // Manually trigger a store rotation after config sync.
                     Terminal terminal = Object.FindObjectOfType<Terminal>();
                     terminal?.ShipDecorSelection.Clear();
                     terminal?.RotateShipDecorSelection();
                 }
-            });
+            }); */
         }
     }
 }

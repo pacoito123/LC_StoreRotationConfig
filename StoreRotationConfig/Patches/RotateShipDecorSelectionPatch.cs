@@ -1,6 +1,7 @@
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
+// using Unity.Netcode;
 
 namespace StoreRotationConfig.Patches
 {
@@ -17,13 +18,13 @@ namespace StoreRotationConfig.Patches
         private static bool Prefix(Terminal __instance)
         {
             // Check if config is synced to client; execute vanilla method if not.
-            if (!Config.IsHost && !Config.Synced)
+            /* if (!NetworkManager.Singleton.IsHost && !Plugin.Settings.ConfigSynced)
             {
-                Plugin.StaticLogger.LogInfo("Waiting for config sync...");
+                Plugin.StaticLogger.LogInfo("Waiting for config sync from server...");
 
                 // Return true to execute vanilla method.
                 return true;
-            }
+            } */
 
             // Obtain values from config file.
             int maxItems = Plugin.Settings.MAX_ITEMS.Value,
@@ -32,8 +33,8 @@ namespace StoreRotationConfig.Patches
                 sortItems = Plugin.Settings.SORT_ITEMS.Value;
             // ...
 
-            // Check if either 'Terminal.ShipDecorSelection' or 'AllItems' list is empty (first load).
-            if (__instance.ShipDecorSelection.Count == 0 || AllItems.Count == 0)
+            // Check if 'Terminal.ShipDecorSelection' list is empty (first load).
+            if (__instance.ShipDecorSelection.Count == 0)
             {
                 // Initialize 'AllItems' list with specified capacity.
                 AllItems = new(StartOfRound.Instance.unlockablesList.unlockables.Count);
@@ -94,6 +95,8 @@ namespace StoreRotationConfig.Patches
 
             // Fill store rotation with every item in 'storeRotation' list.
             storeRotation.ForEach(item => __instance.ShipDecorSelection.Add(item.shopSelectionNode));
+
+            Plugin.StaticLogger.LogInfo("⭮ Store rotated!");
 
             // Return false to stop vanilla method from executing.
             return false;

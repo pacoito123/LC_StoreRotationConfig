@@ -1,3 +1,10 @@
+### [2.0.0]
+
+Update to 'CSync' v4; support for v3 relegated to previous release.
+- Updated `CSync` library dependency requirement to `v4.1.0`, making it compatible with other mods that use `CSync v4`.
+- Added note to `README.md` suggesting downgrading to `v1.3.0` if `CSync v3` is needed.
+- Added commented code in case `CSync` reimplements the ability to join a lobby with either the client or host missing this mod.
+
 ### [1.3.0]
 
 Added setting to configure whether already-purchased items should show up in the store rotation.

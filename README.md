@@ -17,9 +17,9 @@ Intended for when there's a large number of modded items (suits, furniture, etc.
 
 Compatible with `v45`, `v49`, and `v50`.
 
-Uses [CSync (v3.1.1 and below)](https://thunderstore.io/c/lethal-company/p/Sigurd/CSync) by [Owen3H](https://github.com/Owen3H) (forked by [Lordfirespeed](https://github.com/Lorefirespeed)) to sync config settings between host and clients.
+Uses [CSync (v4.1.0 and above)](https://thunderstore.io/c/lethal-company/p/Sigurd/CSync) by [Lordfirespeed](https://github.com/Lorefirespeed) to sync config settings between host and clients.
 
-**NOTE:** CSync v4, which is downloaded automatically by r2modman when installing this mod's dependencies, is currently **not** supported and must be downgraded to v3 for this mod to work. CSync v3 is preferred at the moment to maintain compatibility with other mods that have not yet switched to the latest version.
+**NOTE:** CSync v3, which could be required by some older mods, is no longer supported after `v2.0.0`, and downgrading to `v1.3.0` is required.
 
 ## Configuration
 
@@ -43,7 +43,9 @@ In `v49`, there's a name conflict between the `Purple suit` and the `Pajama suit
 
 The `relativeScroll` tweak is not limited to just the store page, and could potentially fix scrolling issues in other terminal pages, but it could also be incompatible or cause issues with other mods that modify or set the `PlayerControllerB.terminalScrollVertical` value.
 
-**NOTE:** This mod is _technically_ server-side, but clients need the mod installed to be able to see and purchase any of the additional items added to the vanilla store rotation. Similarly, joining a lobby that doesn't have this mod installed will not modify the store rotation.
+~~**NOTE:** This mod is _technically_ server-side, but clients need the mod installed to be able to see and purchase any of the additional items added to the vanilla store rotation. Similarly, joining a lobby that doesn't have this mod installed will not modify the store rotation.~~
+
+**NOTE:** After `v2.0.0`, this mod is now required to be installed on **both host and clients**, though I have commented code ready to once again make it (technically) server-side, if `CSync v4` reimplements the ability to join a lobby with either client or host missing this mod.
 
 ---
 
