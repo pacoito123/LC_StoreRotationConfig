@@ -29,6 +29,11 @@ namespace StoreRotationConfig
         [DataMember] public SyncedEntry<bool> STOCK_ALL { get; private set; }
 
         /// <summary>
+        ///     Include already-purchased items in the store rotation.
+        /// </summary>
+        [DataMember] public SyncedEntry<bool> STOCK_PURCHASED { get; private set; }
+
+        /// <summary>
         ///     Sort every item in the store rotation alphabetically.
         /// </summary>
         public ConfigEntry<bool> SORT_ITEMS { get; private set; }
@@ -54,6 +59,7 @@ namespace StoreRotationConfig
             MIN_ITEMS = cfg.BindSyncedEntry("General", "minItems", 8, "Minimum number of items in the store rotation.");
             MAX_ITEMS = cfg.BindSyncedEntry("General", "maxItems", 12, "Maximum number of items in the store rotation.");
             STOCK_ALL = cfg.BindSyncedEntry("General", "stockAll", false, "Make every item available in the store rotation.");
+            STOCK_PURCHASED = cfg.BindSyncedEntry("General", "stockPurchased", true, "Include already-purchased items in the store rotation.");
 
             SORT_ITEMS = cfg.Bind("Miscellaneous", "sortItems", false, "Sort every item in the store rotation alphabetically.");
             RELATIVE_SCROLL = cfg.Bind("Miscellaneous", "relativeScroll", false, "[EXPERIMENTAL] Adapt terminal scroll to the "
@@ -65,7 +71,7 @@ namespace StoreRotationConfig
             SyncComplete += new((_, _) =>
             {
                 // Check if the local client running is the server host.
-                if (!IsHost && !NetworkManager.Singleton.IsServer)
+                if (!NetworkManager.Singleton.IsHost && !NetworkManager.Singleton.IsServer)
                 {
                     Plugin.StaticLogger.LogInfo("Config synced! ⭮ Rotating store...");
 

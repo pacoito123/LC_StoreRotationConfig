@@ -1,3 +1,11 @@
+### [1.3.0]
+
+Added setting to configure whether already-purchased items should show up in the store rotation.
+- Added `showPurchased` server-side setting (on by default).
+	- Determines whether or not to include already-purchased items in both the current store rotation and any future ones.
+	- Also immediately removes them from the current store rotation, if disabled.
+- Next release will target `CSync v4`, this specific version can be downgraded to if `CSync v3` compatibility is required.
+
 ### [1.2.0]
 
 Minor (optional) tweak to terminal scrolling.

@@ -11,7 +11,7 @@ namespace StoreRotationConfig.Patches
     internal class RotateShipDecorSelectionPatch
     {
         // Cached list of every purchasable, non-persistent item available in the store.
-        private static List<UnlockableItem> allItems;
+        public static List<UnlockableItem> AllItems { get; private set; }
 
         [HarmonyPriority(Priority.VeryHigh)]
         private static bool Prefix(Terminal __instance)
@@ -26,34 +26,35 @@ namespace StoreRotationConfig.Patches
             }
 
             // Obtain values from config file.
-            int maxItems = Plugin.Settings.MAX_ITEMS,
-                minItems = Plugin.Settings.MIN_ITEMS;
-            bool stockAll = Plugin.Settings.STOCK_ALL,
+            int maxItems = Plugin.Settings.MAX_ITEMS.Value,
+                minItems = Plugin.Settings.MIN_ITEMS.Value;
+            bool stockAll = Plugin.Settings.STOCK_ALL.Value,
                 sortItems = Plugin.Settings.SORT_ITEMS.Value;
             // ...
 
-            // Check if either 'Terminal.ShipDecorSelection' or 'allItems' list is empty (first load).
-            if (__instance.ShipDecorSelection.Count == 0 || allItems.Count == 0)
+            // Check if either 'Terminal.ShipDecorSelection' or 'AllItems' list is empty (first load).
+            if (__instance.ShipDecorSelection.Count == 0 || AllItems.Count == 0)
             {
-                // Initialize 'allItems' list with specified capacity.
-                allItems = new(StartOfRound.Instance.unlockablesList.unlockables.Count);
+                // Initialize 'AllItems' list with specified capacity.
+                AllItems = new(StartOfRound.Instance.unlockablesList.unlockables.Count);
 
-                // Fill 'allItems' list with every purchasable, non-persistent item.
+                // Fill 'AllItems' list with every purchasable, non-persistent item.
                 StartOfRound.Instance.unlockablesList.unlockables.DoIf(
-                    condition: item => item.shopSelectionNode != null && !item.alwaysInStock,
-                    action: allItems.Add);
+                    condition: item => item.shopSelectionNode != null && !item.alwaysInStock
+                        && (Plugin.Settings.STOCK_PURCHASED || (!item.hasBeenUnlockedByPlayer && !item.alreadyUnlocked)),
+                    action: AllItems.Add);
 
                 // Check if 'stockAll' setting is enabled.
                 if (stockAll)
                 {
-                    // Sort 'allItems' list alphabetically if 'sortItems' setting is enabled.
+                    // Sort 'AllItems' list alphabetically if 'sortItems' setting is enabled.
                     if (sortItems)
                     {
-                        allItems.Sort((x, y) => string.Compare(x.unlockableName, y.unlockableName));
+                        AllItems.Sort((x, y) => string.Compare(x.unlockableName, y.unlockableName));
                     }
 
-                    // Fill store rotation with every item in 'allItems'.
-                    allItems.ForEach(item => __instance.ShipDecorSelection.Add(item.shopSelectionNode));
+                    // Fill store rotation with every item in 'AllItems'.
+                    AllItems.ForEach(item => __instance.ShipDecorSelection.Add(item.shopSelectionNode));
                 }
             }
 
@@ -73,16 +74,16 @@ namespace StoreRotationConfig.Patches
             Random random = new(StartOfRound.Instance.randomMapSeed + 65);
             int num = (minItems != maxItems) ? random.Next(minItems, maxItems + 1) : maxItems;
 
-            // Create 'storeRotation' list (for sorting), and clone 'allItems' list (for item selection).
-            List<UnlockableItem> storeRotation = new(num), allItemsClone = new(allItems);
+            // Create 'storeRotation' list (for sorting), and clone 'AllItems' list (for item selection).
+            List<UnlockableItem> storeRotation = new(num), allItems = new(AllItems);
 
-            // Iterate for every item to add to the store rotation (and exit early if there are no more items in 'allItemsClone' list).
-            for (int i = 0; i < num && allItemsClone.Count != 0; i++)
+            // Iterate for every item to add to the store rotation (and exit early if there are no more items in 'allItems' cloned list).
+            for (int i = 0; i < num && allItems.Count != 0; i++)
             {
                 // Add random item to 'storeRotation' list, and remove it from 'allItems' cloned list.
-                int index = random.Next(0, allItemsClone.Count);
-                storeRotation.Add(allItemsClone[index]);
-                allItemsClone.RemoveAt(index);
+                int index = random.Next(0, allItems.Count);
+                storeRotation.Add(allItems[index]);
+                allItems.RemoveAt(index);
             }
 
             // Sort 'storeRotation' list alphabetically if 'sortItems' is enabled.

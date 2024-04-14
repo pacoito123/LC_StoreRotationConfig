@@ -21,7 +21,6 @@ namespace StoreRotationConfig.Patches
         // Amount to add/subtract from scrollbar value, relative to number of lines in the current terminal page.
         private static float scrollAmount = 0f;
 
-        [HarmonyPriority(Priority.VeryHigh)]
         private static bool Prefix(ref InputAction.CallbackContext context)
         {
             // Obtain local player instance.
