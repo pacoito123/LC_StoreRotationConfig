@@ -1,6 +1,6 @@
-using System.Linq;
 using GameNetcodeStuff;
 using HarmonyLib;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -15,47 +15,43 @@ namespace StoreRotationConfig.Patches
         // Cached terminal instance.
         private static Terminal terminal;
 
-        // Text of the current terminal page.
+        // Text shown in the current terminal page.
         private static string currentText = "";
 
         // Amount to add/subtract from scrollbar value, relative to number of lines in the current terminal page.
         private static float scrollAmount = 0f;
 
-        private static bool Prefix(ref InputAction.CallbackContext context)
+        private static bool Prefix(PlayerControllerB __instance, ref InputAction.CallbackContext context)
         {
-            // Obtain local player instance.
-            PlayerControllerB player = GameNetworkManager.Instance.localPlayerController;
-
-            // Check if player has the terminal open, and the 'relativeScroll' setting enabled.
-            if (player.inTerminalMenu && Plugin.Settings.RELATIVE_SCROLL.Value)
+            // Execute vanilla method if the 'relativeScroll' setting is disabled, or if the player instance does not have the terminal open.
+            if (!Plugin.Settings.RELATIVE_SCROLL.Value || !__instance.inTerminalMenu)
             {
-                // Ensure cached terminal instance exists.
-                if (terminal == null)
-                {
-                    terminal = Object.FindObjectOfType<Terminal>();
-                }
-
-                // Check if text currently shown in the terminal has changed, to avoid calculating scroll amount more than once.
-                if (!currentText.Equals(terminal.currentText))
-                {
-                    // Cache text currently shown in the terminal.
-                    currentText = terminal.currentText;
-
-                    // Calculate relative scroll amount using number of lines in the current terminal page.
-                    int numLines = currentText.Count(c => c.Equals('\n')) + 1;
-                    scrollAmount = 1f / (numLines * 0.05f);
-                }
-
-                // Increment/decrement scrollbar value by relative scroll amount.
-                float scrollDirection = context.ReadValue<float>();
-                player.terminalScrollVertical.value += scrollDirection * scrollAmount;
-
-                // Return false to stop vanilla method from executing.
-                return false;
+                return true;
             }
 
-            // Return true to execute vanilla method.
-            return true;
+            // Ensure cached terminal instance exists.
+            if (terminal == null)
+            {
+                terminal = Object.FindObjectOfType<Terminal>();
+            }
+
+            // Check if text currently shown in the terminal has changed, to avoid calculating scroll amount more than once.
+            if (!currentText.Equals(terminal.currentText))
+            {
+                // Cache text currently shown in the terminal.
+                currentText = terminal.currentText;
+
+                // Calculate relative scroll amount using number of lines in the current terminal page.
+                int numLines = currentText.Count(c => c.Equals('\n')) + 1;
+                scrollAmount = 1f / (numLines * 0.05f);
+            }
+
+            // Increment/decrement terminal scrollbar value by relative scroll amount.
+            float scrollDirection = context.ReadValue<float>();
+            __instance.terminalScrollVertical.value += scrollDirection * scrollAmount;
+
+            // Return false to stop vanilla method from executing.
+            return false;
         }
     }
 }

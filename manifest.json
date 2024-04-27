@@ -1,6 +1,6 @@
 {
 	"name": "StoreRotationConfig",
-	"version_number": "2.0.0",
+	"version_number": "2.0.1",
 	"website_url": "https://github.com/pacoito123/LC_StoreRotationConfig",
 	"description": "Configure the number of purchasable items in each store rotation, or simply show them all.",
 	"dependencies": [

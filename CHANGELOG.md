@@ -1,3 +1,13 @@
+### [2.0.1]
+
+Fixes for 'showPurchased' and 'relativeScroll' settings.
+- Purchased items should now properly sync between clients when `showPurchased` is set to disabled.
+	- `Terminal.RotateShipDecorSelection()` now waits until after `StartOfRound.SyncShipUnlockablesClientRpc()` is executed when first joining a lobby.
+	- Newly-purchased items should now be properly removed from store rotations for every client, not just the host.
+- `relativeScroll` scroll amount should no longer apply an additional time for each player in the lobby.
+	- `GameNetworkManager.Instance.localPlayerController` was being used instead of the actual `PlayerControllerB` instance calling `PlayerControllerB.ScrollMouse_performed()`.
+- Added a few additional messages to print to console, mostly for debugging purposes.
+
 ### [2.0.0]
 
 Update to 'CSync' v4; support for v3 relegated to previous release.

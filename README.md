@@ -27,7 +27,7 @@ By default, the number of available items in the store is increased from **4-5**
 
 Alternatively, the `showAll` setting (off by default) can be toggled to simply add every purchasable item to the store rotation. Partly intended for fixing name conflict issues when buying stuff at the terminal, but there should be no problems using it during a regular run.
 
-Toggling the `showPurchased` setting (on by default) will prevent already-purchased items from showing up in future store rotations, and will also remove them from the current one.
+Toggling the `showPurchased` setting (on by default) will prevent already-purchased items from showing up in future store rotations, and will also immediately remove newly-purchased items from the current rotation.
 
 The store rotation can also be displayed in alphabetical order by toggling the `sortItems` setting (off by default).
 
@@ -37,7 +37,7 @@ For cases where having too many items in the store rotation causes scrolling to 
 
 The patched `Terminal.RotateShipDecorSelection()` method is functionally the same as vanilla, only with some configurability added, so it _should_ play nicely with other mods (as long as they don't also clear the `Terminal.ShipDecorSelection` list to generate their own, or forcibly add items without checking if they're already present in it).
 
-There's also the possibility of something going wrong if the `Terminal.ShipDecorSelection` list is needed by another mod immediately after joining a lobby, but prior to the config file sync; the patched method to fill the list with additional items only runs _after_ a successful sync, so it remains in its vanilla state until then. So far I haven't encountered any issues with it, but if any incompatibilities _are_ found, please let me know in the [relevant thread](https://discord.com/channels/1168655651455639582/1212542584610881557) in the Lethal Company Modding Discord server, or [open an issue on GitHub](https://github.com/pacoito123/LC_StoreRotationConfig/issues).
+There's also the possibility of something going wrong if the `Terminal.ShipDecorSelection` list is needed by another mod immediately after joining a lobby, but prior to the config file sync; the patched method to fill the list with additional items only runs _after_ a successful sync, so it remains empty until then. So far I haven't encountered any issues with it, but if any incompatibilities _are_ found, please let me know in the [relevant thread](https://discord.com/channels/1168655651455639582/1212542584610881557) in the Lethal Company Modding Discord server, or [open an issue on GitHub](https://github.com/pacoito123/LC_StoreRotationConfig/issues).
 
 In `v49`, there's a name conflict between the `Purple suit` and the `Pajama suit`, which adds a second, unpurchasable `Pajama suit` to the store. If every item available in the store is bought, with the `showPurchased` setting disabled, only the `Pajama suit` will remain in the store rotation. This is fixed in `v50`, with the `Purple suit` having been made properly purchasable.
 

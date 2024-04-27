@@ -1,50 +1,88 @@
 using HarmonyLib;
+using Unity.Netcode;
 using UnityEngine;
 
 namespace StoreRotationConfig.Patches
 {
     /// <summary>
-    ///     Patch for 'StartOfRound.UnlockShipObject()' method; removes items from store rotation if 'stockPurchased' setting is disabled.
+    ///     Patches for removing purchased items from both current and future store rotations.
     /// </summary>
-    [HarmonyPatch(typeof(StartOfRound), "UnlockShipObject", [typeof(int)])]
+    [HarmonyPatch(typeof(StartOfRound))]
     internal class UnlockShipObjectPatch
     {
         // Cached terminal instance.
         private static Terminal terminal;
 
-        private static void Prefix(StartOfRound __instance, int unlockableID)
+        [HarmonyPatch("UnlockShipObject", [typeof(int)])]
+        [HarmonyPrefix]
+        private static void UnlockShipObjectPre(int unlockableID)
         {
-            // Check if the 'stockPurchased' setting is enabled.
-            if (Plugin.Settings.STOCK_PURCHASED)
+            // Return if 'stockPurchased' setting is enabled, or if local game instance is not hosting the server.
+            if (Plugin.Settings.STOCK_PURCHASED || !(NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer))
+            {
+                return;
+            }
+
+            // Attempt to remove item from the store rotation.
+            Plugin.StaticLogger.LogDebug($"Attempting to remove unlockable #{unlockableID} on server...");
+            RemoveItemFromRotation(unlockableID);
+        }
+
+        [HarmonyPatch(nameof(StartOfRound.BuyShipUnlockableClientRpc), [typeof(int), typeof(int)])]
+        [HarmonyPrefix]
+        private static void BuyShipUnlockableClientPre(int newGroupCreditsAmount, int unlockableID = -1)
+        {
+            // Return if 'stockPurchased' setting is true, or if local game instance is hosting the server.
+            if (Plugin.Settings.STOCK_PURCHASED || (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer))
+            {
+                return;
+            }
+
+            // Attempt to remove item from the store rotation.
+            Plugin.StaticLogger.LogDebug($"Attempting to remove unlockable #{unlockableID} on client...");
+            RemoveItemFromRotation(unlockableID);
+        }
+
+        /// <summary>
+        ///     Helper function for removing items from both 'RotateShipDecorSelectionPatch.AllItems' and 'Terminal.ShipDecorSelection' lists.
+        /// </summary>
+        /// <param name="unlockableID">ID of the unlockable item to remove.</param>
+        private static void RemoveItemFromRotation(int unlockableID)
+        {
+            // Return if no item was successfully purchased.
+            if (unlockableID == -1)
             {
                 return;
             }
 
             // Obtain item from list of purchasable items.
-            UnlockableItem item = __instance.unlockablesList.unlockables[unlockableID];
+            UnlockableItem item = StartOfRound.Instance.unlockablesList.unlockables[unlockableID];
 
-            // Check if item has already been purchased.
-            if (!item.hasBeenUnlockedByPlayer && !item.alreadyUnlocked)
+            // Return if item has already been purchased (likely a redundant check, but done just in case).
+            if (item.hasBeenUnlockedByPlayer || item.alreadyUnlocked)
             {
-                // Remove item from 'RotateShipDecorSelectionPatch.AllItems' list.
-                if (RotateShipDecorSelectionPatch.AllItems.Remove(item))
-                {
-                    // Ensure cached terminal instance exists.
-                    if (terminal == null)
-                    {
-                        terminal = Object.FindObjectOfType<Terminal>();
-                    }
+                Plugin.StaticLogger.LogWarning($"Unlockable #{unlockableID} has already been purchased.");
+                return;
+            }
 
-                    // Remove item from 'Terminal.ShipDecorSelection' list.
-                    if (!terminal.ShipDecorSelection.Remove(item.shopSelectionNode))
-                    {
-                        Plugin.StaticLogger.LogWarning($"Unlockable #{unlockableID} was not found in the store rotation.");
-                    }
-                }
-                else
+            // Remove item from 'RotateShipDecorSelectionPatch.AllItems' list.
+            if (RotateShipDecorSelectionPatch.AllItems.Remove(item))
+            {
+                // Ensure cached terminal instance exists.
+                if (terminal == null)
                 {
-                    Plugin.StaticLogger.LogWarning($"Unlockable #{unlockableID} was not found in the list of purchasable items.");
+                    terminal = Object.FindObjectOfType<Terminal>();
                 }
+
+                // Remove item from 'Terminal.ShipDecorSelection' list.
+                if (!terminal.ShipDecorSelection.Remove(item.shopSelectionNode))
+                {
+                    Plugin.StaticLogger.LogWarning($"Unlockable #{unlockableID} was not found in the store rotation.");
+                }
+            }
+            else
+            {
+                Plugin.StaticLogger.LogWarning($"Unlockable #{unlockableID} was not found in the list of purchasable items.");
             }
         }
     }

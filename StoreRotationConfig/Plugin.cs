@@ -13,7 +13,7 @@ namespace StoreRotationConfig
     [BepInDependency("com.sigurd.csync", "4.1.0")]
     public class Plugin : BaseUnityPlugin
     {
-        internal const string GUID = "pacoito.StoreRotationConfig", PLUGIN_NAME = "StoreRotationConfig", VERSION = "2.0.0";
+        internal const string GUID = "pacoito.StoreRotationConfig", PLUGIN_NAME = "StoreRotationConfig", VERSION = "2.0.1";
         internal static ManualLogSource StaticLogger { get; private set; }
 
         /// <summary>

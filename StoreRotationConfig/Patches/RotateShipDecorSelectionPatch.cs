@@ -1,12 +1,12 @@
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
-// using Unity.Netcode;
+using Unity.Netcode;
 
 namespace StoreRotationConfig.Patches
 {
     /// <summary>
-    ///     Patch for 'Terminal.RotateShipDecorSelection()' method; replaces vanilla unless only the client has this mod installed.
+    ///     Patch for 'Terminal.RotateShipDecorSelection()' method; overrides vanilla method, but should functionally be the same.
     /// </summary>
     [HarmonyPatch(typeof(Terminal), methodName: nameof(Terminal.RotateShipDecorSelection))]
     internal class RotateShipDecorSelectionPatch
@@ -17,14 +17,15 @@ namespace StoreRotationConfig.Patches
         [HarmonyPriority(Priority.VeryHigh)]
         private static bool Prefix(Terminal __instance)
         {
-            // Check if config is synced to client; execute vanilla method if not.
-            /* if (!NetworkManager.Singleton.IsHost && !Plugin.Settings.ConfigSynced)
+            // Return if client has not yet fully synced with the host.
+            if (!NetworkManager.Singleton.IsHost && !NetworkManager.Singleton.IsServer && !SyncShipUnlockablesPatch.UnlockablesSynced)
+            // && !Plugin.Settings.ConfigSynced)
             {
-                Plugin.StaticLogger.LogInfo("Waiting for config sync from server...");
+                Plugin.StaticLogger.LogInfo("Waiting for sync from server before rotating store...");
 
-                // Return true to execute vanilla method.
-                return true;
-            } */
+                // Return false to stop vanilla method from executing.
+                return false;
+            }
 
             // Obtain values from config file.
             int maxItems = Plugin.Settings.MAX_ITEMS.Value,
@@ -48,9 +49,10 @@ namespace StoreRotationConfig.Patches
                 // Check if 'stockAll' setting is enabled.
                 if (stockAll)
                 {
-                    // Sort 'AllItems' list alphabetically if 'sortItems' setting is enabled.
+                    // Check if 'sortItems' setting is enabled.
                     if (sortItems)
                     {
+                        // Sort 'AllItems' list alphabetically.
                         AllItems.Sort((x, y) => string.Compare(x.unlockableName, y.unlockableName));
                     }
 
@@ -59,11 +61,13 @@ namespace StoreRotationConfig.Patches
                 }
             }
 
-            // Return false if 'stockAll' setting is enabled, since store rotation list has already been filled at this point.
+            // Return false if 'stockAll' setting is enabled, since the store rotation list has already been filled at this point.
             if (stockAll)
             {
                 return false;
             }
+
+            Plugin.StaticLogger.LogInfo("Rotating store...");
 
             // Clear previous store rotation list.
             __instance.ShipDecorSelection.Clear();
@@ -96,7 +100,7 @@ namespace StoreRotationConfig.Patches
             // Fill store rotation with every item in 'storeRotation' list.
             storeRotation.ForEach(item => __instance.ShipDecorSelection.Add(item.shopSelectionNode));
 
-            Plugin.StaticLogger.LogInfo("⭮ Store rotated!");
+            Plugin.StaticLogger.LogInfo("Store rotated!");
 
             // Return false to stop vanilla method from executing.
             return false;
