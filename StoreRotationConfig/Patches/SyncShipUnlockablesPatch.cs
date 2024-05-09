@@ -16,7 +16,8 @@ namespace StoreRotationConfig.Patches
         public static bool UnlockablesSynced { get; private set; } = false;
 
         [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.SyncShipUnlockablesClientRpc),
-            [typeof(int[]), typeof(bool), typeof(Vector3[]), typeof(Vector3[]), typeof(int[]), typeof(int[]), typeof(int[]), typeof(int[])])]
+            typeof(int[]), typeof(bool), typeof(Vector3[]), typeof(Vector3[]), typeof(int[]), typeof(int[]), typeof(int[]), typeof(int[]))]
+        [HarmonyPriority(Priority.Last)]
         [HarmonyPostfix]
         private static void SyncShipUnlockablesClientPost(int[] playerSuitIDs, bool shipLightsOn, Vector3[] placeableObjectPositions,
             Vector3[] placeableObjectRotations, int[] placeableObjects, int[] storedItems, int[] scrapValues, int[] itemSaveData)

@@ -9,7 +9,7 @@ namespace StoreRotationConfig.Patches
     /// <summary>
     ///     Patch for 'PlayerControllerB.ScrollMouse_performed()' method; replaces vanilla method unless the 'relativeScroll' setting is disabled.
     /// </summary>
-    [HarmonyPatch(typeof(PlayerControllerB), "ScrollMouse_performed", [typeof(InputAction.CallbackContext)])]
+    [HarmonyPatch(typeof(PlayerControllerB), "ScrollMouse_performed", typeof(InputAction.CallbackContext))]
     internal class TerminalScrollMousePatch
     {
         // Cached terminal instance.
@@ -43,7 +43,7 @@ namespace StoreRotationConfig.Patches
 
                 // Calculate relative scroll amount using number of lines in the current terminal page.
                 int numLines = currentText.Count(c => c.Equals('\n')) + 1;
-                scrollAmount = 1f / (numLines * 0.05f);
+                scrollAmount = Plugin.Settings.LINES_TO_SCROLL.Value / (float)numLines;
             }
 
             // Increment/decrement terminal scrollbar value by relative scroll amount.

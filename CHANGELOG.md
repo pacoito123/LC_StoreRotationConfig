@@ -1,3 +1,12 @@
+### [2.1.0]
+
+Update to 'CSync' v5, more configuration for terminal scrolling.
+- Updated `CSync` library dependency to `v5.0.0`.
+	- Updated `README.md` notes regarding `CSync` version compatibility.
+- Added `linesToScroll` client-side setting (20 by default).
+	- Determines the number of lines the terminal should scroll at a time.
+	- Requires `relativeScroll` to be enabled.
+
 ### [2.0.1]
 
 Fixes for 'showPurchased' and 'relativeScroll' settings.

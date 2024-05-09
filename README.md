@@ -17,9 +17,15 @@ Intended for when there's a large number of modded items (suits, furniture, etc.
 
 Compatible with `v45`, `v49`, and `v50`.
 
-Uses [CSync (v4.1.0 and above)](https://thunderstore.io/c/lethal-company/p/Sigurd/CSync) by [Lordfirespeed](https://github.com/Lorefirespeed) to sync config settings between host and clients.
+Uses [CSync (v5.0.0 and above)](https://thunderstore.io/c/lethal-company/p/Sigurd/CSync) by [Lordfirespeed](https://github.com/Lorefirespeed) to sync config settings between host and clients.
 
-**NOTE:** CSync v3, which could be required by some older mods, is no longer supported after `v2.0.0`, and downgrading to `v1.3.0` is required.
+**NOTE:** In case an older version of CSync is needed, usually due to mods that have not yet updated to the latest versions, refer to the following table for which specific version of this mod to downgrade to:
+
+| CSync           | StoreRotationConfig |
+| :-------------: | :-----------------: |
+| v5.0.0          | `v2.1.0`            |
+| v4.1.0          | `v2.0.1`            |
+| v3.1.1          | `v1.3.0`            |
 
 ## Configuration
 
@@ -31,7 +37,7 @@ Toggling the `showPurchased` setting (on by default) will prevent already-purcha
 
 The store rotation can also be displayed in alphabetical order by toggling the `sortItems` setting (off by default).
 
-For cases where having too many items in the store rotation causes scrolling to skip over several lines, either with `stockAll` enabled or with a high `minItems`/`maxItems` value, toggling the `relativeScroll` setting (off by default) will adapt the terminal scroll amount to the number of lines in the current terminal page.
+For cases where having too many items in the store rotation causes scrolling to skip over several lines, either with `stockAll` enabled or with a high `minItems`/`maxItems` value, toggling the `relativeScroll` setting (off by default) will adapt scrolling to a certain number of lines at a time, determined by the `linesToScroll` setting (20 by default).
 
 ## Compatibility
 
@@ -45,7 +51,7 @@ The `relativeScroll` tweak is not limited to just the store page, and could pote
 
 ~~**NOTE:** This mod is _technically_ server-side, but clients need the mod installed to be able to see and purchase any of the additional items added to the vanilla store rotation. Similarly, joining a lobby that doesn't have this mod installed will not modify the store rotation.~~
 
-**NOTE:** After `v2.0.0`, this mod is now required to be installed on **both host and clients**, though I have commented code ready to once again make it (technically) server-side, if `CSync v4` reimplements the ability to join a lobby with either client or host missing this mod.
+**NOTE:** As of `v2.0.0`, this mod is now required to be installed on **both host and clients**, though I have commented code ready to once again make it (technically) server-side, if `CSync v4` reimplements the ability to join a lobby with either client or host missing this mod.
 
 ---
 

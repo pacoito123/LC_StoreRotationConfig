@@ -11,28 +11,28 @@ namespace StoreRotationConfig
     ///     Class containing and defining plugin configuration options, with some entries being synced between host and clients.
     /// </summary>
     [DataContract]
-    public class Config : SyncedConfig<Config>
+    public class Config : SyncedConfig2<Config>
     {
         /// <summary>
         ///     Minimum number of items in the store rotation.
         /// </summary>
-        [field: DataMember] public SyncedEntry<int> MIN_ITEMS { get; private set; }
+        [field: SyncedEntryField] public SyncedEntry<int> MIN_ITEMS { get; private set; }
 
         /// <summary>
         ///     Maximum number of items in the store rotation.
         /// </summary>
-        [field: DataMember] public SyncedEntry<int> MAX_ITEMS { get; private set; }
+        [field: SyncedEntryField] public SyncedEntry<int> MAX_ITEMS { get; private set; }
 
         /// <summary>
         ///     Make every item available in the store rotation.
         /// </summary>
-        [field: DataMember] public SyncedEntry<bool> STOCK_ALL { get; private set; }
+        [field: SyncedEntryField] public SyncedEntry<bool> STOCK_ALL { get; private set; }
 
         /// <summary>
         ///     Include already-purchased items in the store rotation. If disabled, prevents purchased items from showing up again
         ///     in future store rotations, and removes them from the current one.
         /// </summary>
-        [field: DataMember] public SyncedEntry<bool> STOCK_PURCHASED { get; private set; }
+        [field: SyncedEntryField] public SyncedEntry<bool> STOCK_PURCHASED { get; private set; }
 
         /// <summary>
         ///     Sort every item in the store rotation alphabetically.
@@ -40,11 +40,16 @@ namespace StoreRotationConfig
         public ConfigEntry<bool> SORT_ITEMS { get; private set; }
 
         /// <summary>
-        ///     [EXPERIMENTAL] Adapt terminal scroll to the number of lines in the current terminal page, instead of a flat value.
+        ///     Adapt terminal scroll to the number of lines in the current terminal page, instead of a flat value.
         ///     Should fix cases where scrolling skips over several lines, which is especially noticeable when enabling 'stockAll'
         ///     with a large number of items in the store.
         /// </summary>
         public ConfigEntry<bool> RELATIVE_SCROLL { get; private set; }
+
+        /// <summary>
+        ///     Number of lines to scroll at a time with 'relativeScroll' enabled.
+        /// </summary>
+        public ConfigEntry<int> LINES_TO_SCROLL { get; private set; }
 
         /* /// <summary>
         ///     Whether config has been successfully synced with the host or not; reset upon returning to main menu.
@@ -59,9 +64,6 @@ namespace StoreRotationConfig
         /// <param name="cfg">BepInEx configuration file.</param>
         public Config(ConfigFile cfg) : base(Plugin.GUID)
         {
-            // Register to sync config files between host and clients.
-            ConfigManager.Register(this);
-
             // Bind config entries to config file.
             MIN_ITEMS = cfg.BindSyncedEntry("General", "minItems", 8, "Minimum number of items in the store rotation.");
             MAX_ITEMS = cfg.BindSyncedEntry("General", "maxItems", 12, "Maximum number of items in the store rotation.");
@@ -73,7 +75,12 @@ namespace StoreRotationConfig
             RELATIVE_SCROLL = cfg.Bind("Miscellaneous", "relativeScroll", false, "[EXPERIMENTAL] Adapt terminal scroll to the "
                 + "number of lines in the current terminal page, instead of a flat value. Should fix cases where scrolling skips over several lines, which is "
                 + "especially noticeable when enabling 'stockAll' with a large number of items in the store.");
+            LINES_TO_SCROLL = cfg.Bind("Miscellaneous", "linesToScroll", 20, new ConfigDescription("Number of lines to scroll at a time with "
+                + "'relativeScroll' enabled.", new AcceptableValueRange<int>(1, 28)));
             // ...
+
+            // Register to sync config files between host and clients.
+            ConfigManager.Register(this);
 
             // Function to run once config is synced.
             /* InitialSyncCompleted += new((_, _) =>

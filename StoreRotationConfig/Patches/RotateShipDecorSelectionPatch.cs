@@ -14,7 +14,6 @@ namespace StoreRotationConfig.Patches
         // Cached list of every purchasable, non-persistent item available in the store.
         public static List<UnlockableItem> AllItems { get; private set; }
 
-        [HarmonyPriority(Priority.VeryHigh)]
         private static bool Prefix(Terminal __instance)
         {
             // Return if client has not yet fully synced with the host.

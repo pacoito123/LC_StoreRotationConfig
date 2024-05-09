@@ -13,7 +13,7 @@ namespace StoreRotationConfig.Patches
         // Cached terminal instance.
         private static Terminal terminal;
 
-        [HarmonyPatch("UnlockShipObject", [typeof(int)])]
+        [HarmonyPatch("UnlockShipObject", typeof(int))]
         [HarmonyPrefix]
         private static void UnlockShipObjectPre(int unlockableID)
         {
@@ -28,7 +28,7 @@ namespace StoreRotationConfig.Patches
             RemoveItemFromRotation(unlockableID);
         }
 
-        [HarmonyPatch(nameof(StartOfRound.BuyShipUnlockableClientRpc), [typeof(int), typeof(int)])]
+        [HarmonyPatch(nameof(StartOfRound.BuyShipUnlockableClientRpc), typeof(int), typeof(int))]
         [HarmonyPrefix]
         private static void BuyShipUnlockableClientPre(int newGroupCreditsAmount, int unlockableID = -1)
         {
