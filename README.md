@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/github/license/pacoito123/LC_StoreRotationConfig?style=for-the-badge&logo=github&color=teal
 )](https://github.com/pacoito123/LC_StoreRotationConfig/blob/main/LICENSE)
 
-> Configure the number of purchasable items in each store rotation, or simply show them all.
+> Configure the number of items in each store rotation, show them all, remove purchased items, or sort them.
 
 ## Description
 
@@ -17,33 +17,33 @@ Intended for when there's a large number of modded items (suits, furniture, etc.
 
 Compatible with `v45`, `v49`, and `v50`.
 
-Uses [CSync (v5.0.0 and above)](https://thunderstore.io/c/lethal-company/p/Sigurd/CSync) by [Lordfirespeed](https://github.com/Lorefirespeed) to sync config settings between host and clients.
+Uses [CSync (v5.0.1 and above)](https://thunderstore.io/c/lethal-company/p/Sigurd/CSync) by [Lordfirespeed](https://github.com/Lorefirespeed) to sync config settings between host and clients.
 
 **NOTE:** In case an older version of CSync is needed, usually due to mods that have not yet updated to the latest versions, refer to the following table for which specific version of this mod to downgrade to:
 
 | CSync           | StoreRotationConfig |
 | :-------------: | :-----------------: |
-| v5.0.0          | `v2.1.0`            |
+| v5.0.1          | `v2.1.0+`           |
 | v4.1.0          | `v2.0.1`            |
 | v3.1.1          | `v1.3.0`            |
 
 ## Configuration
 
-By default, the number of available items in the store is increased from **4-5** (vanilla) to **8-12**, but this range can be configured via the `minItems` and `maxItems` config settings. Set both numbers to the same value to have a fixed number of items in every rotation.
+By default, the number of available items in the store is increased from **4-5** (vanilla) to **8-12**, but this range can be configured via the `minItems` and `maxItems` config settings. Set both numbers to the same value to have a fixed number of items in every rotation. If `minItems` is larger than `maxItems`, both numbers are set to the larger value. To avoid any issues with negative numbers, the absolute value of these two settings is used when generating the store rotation.
 
-Alternatively, the `showAll` setting (off by default) can be toggled to simply add every purchasable item to the store rotation. Partly intended for fixing name conflict issues when buying stuff at the terminal, but there should be no problems using it during a regular run.
+Alternatively, the `showAll` setting (off by default) can be enabled to simply add every purchasable item to the store rotation. Partly intended for fixing name conflict issues when buying stuff at the terminal, but there should be no problems using it during a regular run.
 
-Toggling the `showPurchased` setting (on by default) will prevent already-purchased items from showing up in future store rotations, and will also immediately remove newly-purchased items from the current rotation.
+Disabling the `showPurchased` setting (on by default) will prevent already-purchased items from showing up in future store rotations, and will also immediately remove newly-purchased items from the current rotation.
 
-The store rotation can also be displayed in alphabetical order by toggling the `sortItems` setting (off by default).
+The store rotation can also be displayed in alphabetical order by enabling the `sortItems` setting (off by default).
 
-For cases where having too many items in the store rotation causes scrolling to skip over several lines, either with `stockAll` enabled or with a high `minItems`/`maxItems` value, toggling the `relativeScroll` setting (off by default) will adapt scrolling to a certain number of lines at a time, determined by the `linesToScroll` setting (20 by default).
+For cases where having too many items in the store rotation causes scrolling to skip over several lines, either with `stockAll` enabled or with a high `minItems`/`maxItems` value, enabling the `relativeScroll` setting (off by default) will adapt scrolling to a certain number of lines at a time, determined by the `linesToScroll` setting (20 by default), and relative to the length of the currently shown terminal page.
 
 ## Compatibility
 
 The patched `Terminal.RotateShipDecorSelection()` method is functionally the same as vanilla, only with some configurability added, so it _should_ play nicely with other mods (as long as they don't also clear the `Terminal.ShipDecorSelection` list to generate their own, or forcibly add items without checking if they're already present in it).
 
-There's also the possibility of something going wrong if the `Terminal.ShipDecorSelection` list is needed by another mod immediately after joining a lobby, but prior to the config file sync; the patched method to fill the list with additional items only runs _after_ a successful sync, so it remains empty until then. So far I haven't encountered any issues with it, but if any incompatibilities _are_ found, please let me know in the [relevant thread](https://discord.com/channels/1168655651455639582/1212542584610881557) in the Lethal Company Modding Discord server, or [open an issue on GitHub](https://github.com/pacoito123/LC_StoreRotationConfig/issues).
+There's also the possibility of something going wrong if the `Terminal.ShipDecorSelection` list is required by another mod immediately after joining a lobby, but prior to the ship unlockables sync; the list is only filled _after_ a successful sync with the host, and it remains empty until then. So far I haven't encountered any issues with it, but if any incompatibilities _are_ found, please let me know in the [relevant thread](https://discord.com/channels/1168655651455639582/1212542584610881557) in the Lethal Company Modding Discord server, or [open an issue on GitHub](https://github.com/pacoito123/LC_StoreRotationConfig/issues).
 
 In `v49`, there's a name conflict between the `Purple suit` and the `Pajama suit`, which adds a second, unpurchasable `Pajama suit` to the store. If every item available in the store is bought, with the `showPurchased` setting disabled, only the `Pajama suit` will remain in the store rotation. This is fixed in `v50`, with the `Purple suit` having been made properly purchasable.
 
@@ -51,8 +51,8 @@ The `relativeScroll` tweak is not limited to just the store page, and could pote
 
 ~~**NOTE:** This mod is _technically_ server-side, but clients need the mod installed to be able to see and purchase any of the additional items added to the vanilla store rotation. Similarly, joining a lobby that doesn't have this mod installed will not modify the store rotation.~~
 
-**NOTE:** As of `v2.0.0`, this mod is now required to be installed on **both host and clients**, though I have commented code ready to once again make it (technically) server-side, if `CSync v4` reimplements the ability to join a lobby with either client or host missing this mod.
+**NOTE:** As of `v2.0.0`, this mod is now required to be installed on **both host and clients**, though I have commented code ready to once again make it (technically) server-side, if `CSync` reimplements the ability to join a lobby with either client or host missing a mod that depends on it.
 
 ---
 
-![alt](https://files.catbox.moe/o35ptg.png "Store with every vanilla item available for purchase, in alphabetical order.")
+![alt](https://files.catbox.moe/5nli7q.png "Store with every vanilla item available for purchase in v50, in alphabetical order.")

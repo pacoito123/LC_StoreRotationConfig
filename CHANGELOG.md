@@ -1,3 +1,14 @@
+### [2.2.0]
+
+Transpilers now used in place of some prefix patches, some minor refactoring.
+- Switched to using Transpilers for `Terminal.RotateShipDecorSelection()` and `PlayerControllerB.ScrollMouse_performed()` patches.
+	- Should be much better for compatibility with any other mods that might potentially want to patch these methods as well.
+	- From initial testing, everything seems to be working fine, but please let me know if any issues are encountered.
+- Changed `maxItems` and `minItems` to use their absolute values when rotating the store, to avoid any issues with negative numbers in the configuration file.
+- Modifying `linesToScroll` in-game (e.g. through `LethalConfig`) should now apply changes immediately, instead of until after scrolling on a different terminal page.
+- Updated minimum `CSync` library dependency to patch `v5.0.1`.
+	- Previous release also works with `v5.0.1`, and is recommended.
+
 ### [2.1.0]
 
 Update to 'CSync' v5, more configuration for terminal scrolling.

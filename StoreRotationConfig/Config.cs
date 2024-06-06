@@ -1,6 +1,7 @@
 using BepInEx.Configuration;
 using CSync.Extensions;
 using CSync.Lib;
+using StoreRotationConfig.Patches;
 using System.Runtime.Serialization;
 // using Unity.Netcode;
 // using UnityEngine;
@@ -79,10 +80,16 @@ namespace StoreRotationConfig
                 + "'relativeScroll' enabled.", new AcceptableValueRange<int>(1, 28)));
             // ...
 
+            // Reset cached text if 'linesToScroll' is updated in-game.
+            LINES_TO_SCROLL.SettingChanged += new((_, _) =>
+            {
+                TerminalScrollMousePatch.CurrentText = "";
+            });
+
             // Register to sync config files between host and clients.
             ConfigManager.Register(this);
 
-            // Function to run once config is synced.
+            // Function to run once the config sync is completed.
             /* InitialSyncCompleted += new((_, _) =>
             {
                 // Return if local game instance is hosting the server.
@@ -91,15 +98,11 @@ namespace StoreRotationConfig
                     return;
                 }
 
-                Plugin.StaticLogger.LogInfo("Config synced! ⭮ Rotating store...");
-
                 // Set config sync status to true (successfully synced).
                 ConfigSynced = true;
 
                 // Manually trigger a store rotation after config sync.
-                Terminal terminal = Object.FindObjectOfType<Terminal>();
-                terminal?.ShipDecorSelection.Clear();
-                terminal?.RotateShipDecorSelection();
+                Plugin.Terminal.RotateShipDecorSelection();
             }); */
         }
     }

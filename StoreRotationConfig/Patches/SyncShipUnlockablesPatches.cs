@@ -31,13 +31,14 @@ namespace StoreRotationConfig.Patches
             // Return if unlockables are already synced with the host; toggle unlockable sync status if not.
             if (UnlockablesSynced)
             {
-                Plugin.StaticLogger.LogWarning("Purchased unlockable items already synced with the host...");
+                Plugin.StaticLogger.LogDebug("Purchased unlockable items already synced with the host.");
+
                 return;
             }
             UnlockablesSynced = true;
 
             // Manually trigger a store rotation.
-            Object.FindObjectOfType<Terminal>().RotateShipDecorSelection();
+            Plugin.Terminal.RotateShipDecorSelection();
         }
 
         [HarmonyPatch(typeof(MenuManager), "Start")]
