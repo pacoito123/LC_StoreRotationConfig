@@ -13,7 +13,7 @@ namespace StoreRotationConfig
     [BepInDependency("com.sigurd.csync", "5.0.1")]
     public class Plugin : BaseUnityPlugin
     {
-        internal const string GUID = "pacoito.StoreRotationConfig", PLUGIN_NAME = "StoreRotationConfig", VERSION = "2.2.0";
+        internal const string GUID = "pacoito.StoreRotationConfig", PLUGIN_NAME = "StoreRotationConfig", VERSION = "2.2.1";
         internal static ManualLogSource StaticLogger { get; private set; }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace StoreRotationConfig
                 Settings = new(Config);
                 _ = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), $"{GUID}");
 
-                StaticLogger.LogMessage($"{PLUGIN_NAME} loaded!");
+                StaticLogger.LogInfo($"{PLUGIN_NAME} loaded!");
             }
             catch (Exception e)
             {

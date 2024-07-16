@@ -3,7 +3,7 @@
     <PropertyGroup>
         <AssemblyName>StoreRotationConfig</AssemblyName>
         <Description>Configure the number of items in each store rotation, show them all, remove purchased items, or sort them.</Description>
-        <Version>2.1.1</Version>
+        <Version>2.2.1</Version>
     </PropertyGroup>
 
     <!-- Project properties. -->

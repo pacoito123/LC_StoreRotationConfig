@@ -1,3 +1,10 @@
+### [2.2.1]
+
+Compatibility with v56, previous game versions should still work.
+- Updated `StartOfRound.SyncShipUnlockablesClientRpc()` patch target reference to not include any parameters.
+	- Additional parameter `vehicleID` was added in `v55`, and each parameter was previously declared explicitly in the patch (despite not actually using any).
+- Changed log level of plugin load message to `Info`.
+
 ### [2.2.0]
 
 Transpilers now used in place of some prefix patches, some minor refactoring.
