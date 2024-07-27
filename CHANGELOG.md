@@ -1,3 +1,13 @@
+### [2.3.0]
+
+Item sales added; blacklisting and whitelisting, too.
+- Implemented configurable sales for items in the rotating shop.
+	- `saleChance` determines the likelihood for ANY item to be on sale in every store rotation.
+	- `minSaleItems` and `maxSaleItems` control the number of items that can be on sale at a time.
+	- `minSaleAmount` and `maxSaleAmount` control the amount an item can be discounted by.
+	- `roundToTen` rounds sale amounts to the nearest ten (like the regular store).
+	- `enableSales` determines whether or not the sale system is active.
+
 ### [2.2.1]
 
 Compatibility with v56, previous game versions should still work.

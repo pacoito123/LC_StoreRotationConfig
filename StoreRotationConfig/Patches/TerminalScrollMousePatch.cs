@@ -68,7 +68,7 @@ namespace StoreRotationConfig.Patches
         private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return new CodeMatcher(instructions).MatchForward(false,
-            new(OpCodes.Ldarg_0),
+                new(OpCodes.Ldarg_0),
                 new(OpCodes.Ldfld, AccessTools.Field(typeof(PlayerControllerB), nameof(PlayerControllerB.terminalScrollVertical))))
             .Insert(
                 new(OpCodes.Ldarg_0),
