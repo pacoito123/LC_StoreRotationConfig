@@ -79,7 +79,9 @@ namespace StoreRotationConfig.Patches
             // Use 'maxItems' for 'minItems' if the latter is greater than the former.
             if (minItems > maxItems)
             {
-                minItems = maxItems;
+                Plugin.StaticLogger.LogWarning("Value for 'minItems' is larger than 'maxItems', using it instead...");
+
+                maxItems = minItems;
             }
 
             // Obtain a random number of items using the map seed, or use a fixed number if 'minItems' and 'maxItems' are equal.
@@ -99,8 +101,8 @@ namespace StoreRotationConfig.Patches
                 allItems.RemoveAt(index);
             }
 
-            // Check if 'sortItems' setting is enabled, and if there's more than one item in the 'shipDecorSelection' list.
-            if (sortItems && shipDecorSelection.Count > 1)
+            // Check if 'sortItems' setting is enabled, and if there's more than one item in the 'storeRotation' list.
+            if (sortItems && storeRotation.Count > 1)
             {
                 // Sort 'storeRotation' list alphabetically.
                 storeRotation.Sort((x, y) => string.Compare(x.unlockableName, y.unlockableName));

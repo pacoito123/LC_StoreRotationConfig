@@ -7,6 +7,9 @@ Item sales added; blacklisting and whitelisting, too.
 	- `minSaleAmount` and `maxSaleAmount` control the amount an item can be discounted by.
 	- `roundToTen` rounds sale amounts to the nearest ten (like the regular store).
 	- `enableSales` determines whether or not the sale system is active.
+- Minor fixes for `Terminal.RotateShipDecorSelection()` patch.
+	- `maxItems` value is now used instead of `minItems` when `minItems` is greater than `maxItems`, as intended.
+	- Fixed items not sorting alphabetically with `stockAll` disabled.
 
 ### [2.2.1]
 
