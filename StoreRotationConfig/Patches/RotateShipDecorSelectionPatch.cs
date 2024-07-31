@@ -1,6 +1,7 @@
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection.Emit;
 using Unity.Netcode;
 
@@ -14,6 +15,9 @@ namespace StoreRotationConfig.Patches
     {
         // Cached list of every purchasable, non-persistent item available in the store.
         public static List<UnlockableItem> AllItems { get; private set; }
+
+        // Cached list of items to always add to the rotating store.
+        public static List<UnlockableItem> PermanentItems { get; private set; }
 
         /// <summary>
         ///     Fills 'Terminal.ShipDecorSelection' list with items, reading from the configuration file.
@@ -49,6 +53,33 @@ namespace StoreRotationConfig.Patches
                     condition: item => item.shopSelectionNode != null && !item.alwaysInStock
                         && (Plugin.Settings.STOCK_PURCHASED || (!item.hasBeenUnlockedByPlayer && !item.alreadyUnlocked)),
                     action: AllItems.Add);
+
+                // Check if there is a whitelist specified in the config file.
+                if (!Plugin.Settings.STOCK_ALL && Plugin.Settings.ITEM_WHITELIST != "")
+                {
+                    // Obtain names specified in the config file and trim them.
+                    List<string> whitelist = Plugin.Settings.ITEM_WHITELIST.Value.Split(',').Select(name => name.Trim()).ToList();
+
+                    // Initialize 'PermanentItems' with the capacity set to the number of names in the whitelist.
+                    PermanentItems = new(whitelist.Count);
+
+                    // Attempt to add items to the 'PermanentItems' list, if they match a whitelisted name.
+                    AllItems.DoIf(item => whitelist.Contains(item.shopSelectionNode?.creatureName), PermanentItems.Add);
+
+                    Plugin.StaticLogger.LogInfo($"{PermanentItems.Count} items permanently added to the rotating store!");
+                }
+
+                // Check if there is a blacklist specified in the config file.
+                if (Plugin.Settings.ITEM_BLACKLIST != "")
+                {
+                    // Obtain names specified in the config file and trim them.
+                    List<string> blacklist = Plugin.Settings.ITEM_BLACKLIST.Value.Split(',').Select(name => name.Trim()).ToList();
+
+                    // Attempt to remove items from the 'AllItems' list, if they match a blacklisted name.
+                    int itemsBlacklisted = AllItems.RemoveAll(item => blacklist.Contains(item.shopSelectionNode?.creatureName));
+
+                    Plugin.StaticLogger.LogInfo($"{itemsBlacklisted} items removed from the rotating store.");
+                }
 
                 // Check if 'stockAll' setting is enabled.
                 if (stockAll)
@@ -89,6 +120,17 @@ namespace StoreRotationConfig.Patches
 
             // Create 'storeRotation' list (for sorting), and clone the 'AllItems' list (for item selection).
             List<UnlockableItem> storeRotation = new(numItems), allItems = new(AllItems);
+
+            // Check if there is a whitelist specified in the config file.
+            if (Plugin.Settings.ITEM_WHITELIST != "" && PermanentItems?.Count > 0)
+            {
+                // Remove whitelisted items from the 'allItems' cloned list and add them directly to the 'storeRotation' list.
+                PermanentItems.Do(item =>
+                {
+                    _ = allItems.Remove(item);
+                    storeRotation.Add(item);
+                });
+            }
 
             // Iterate for every item to add to the store rotation, exiting early if there are no more items in the 'allItems' cloned list.
             for (int i = 0; i < numItems && allItems.Count != 0; i++)

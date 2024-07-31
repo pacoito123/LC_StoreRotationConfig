@@ -1,11 +1,22 @@
 ### [2.3.0]
 
-Item sales added; blacklisting and whitelisting, too.
+Configurable item sales, whitelisting, and blacklisting.
 - Implemented configurable sales for items in the rotating shop.
-	- `saleChance` determines the likelihood for ANY item to be on sale in every store rotation, with the value `0` disabling the entire sale system.
-	- `minSaleItems` and `maxSaleItems` control the number of items that can be on sale at a time.
-	- `minDiscount` and `maxDiscount` control the amount an item can be discounted by.
-	- `roundToNearestTen` rounds sale amounts to the nearest ten (like the regular store).
+	- Added postfix for `Terminal.RotateShipDecorSelection()` to assign rotating item sales after every quota.
+	- Added transpiler for `Terminal.TextPostProcess()` to show discounts in the store page.
+		- Compatibility patches might be needed for items that also modify the store page (e.g. `TerminalFormatter`); further testing is needed.
+	- Added transpiler for `Terminal.LoadNewNodeIfAffordable()` to actually apply the rotating item discounts right before a purchase.
+	- Configuration settings added:
+		- `saleChance` determines the likelihood for ANY item to be on sale in every store rotation, with the value `0` disabling the entire sale system.
+		- `minSaleItems` and `maxSaleItems` control the number of items that can be on sale at a time.
+		- `minDiscount` and `maxDiscount` control the amount an item can be discounted by.
+		- `roundToNearestTen` rounds sale amounts to the nearest ten (like the regular store).
+- Added both a whitelist and a blacklist for items available in the rotating shop.
+	- `itemWhitelist` guarantees an item to be in stock every rotation, while `itemBlacklist` prevents them from ever showing up.
+	- Both config settings are a comma-separated list of the exact item names shown in the terminal store page.
+	- `itemWhitelist` will take priority over `itemBlacklist`, if an item is found in both lists.
+	- `itemWhitelist` adds items separate from the range specified by the `minItems` and `maxItems` settings.
+	- If an item name is not found, it will fail silently, but shouldn't cause any further issues.
 - Minor fixes for `Terminal.RotateShipDecorSelection()` patch.
 	- `maxItems` value is now used instead of `minItems` when `minItems` is greater than `maxItems`, as intended.
 	- Fixed items not sorting alphabetically with `stockAll` disabled.

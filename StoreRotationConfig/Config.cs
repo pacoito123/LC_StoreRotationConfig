@@ -36,6 +36,19 @@ namespace StoreRotationConfig
         [field: SyncedEntryField] public SyncedEntry<bool> STOCK_PURCHASED { get; private set; }
 
         /// <summary>
+        ///     The comma-separated names of items that will be guaranteed to show up in every store rotation. Whitelisted items are
+        ///     always added on top of the range defined by 'minItems' and 'maxItems'. Has no effect with the 'stockAll' setting enabled.
+        ///     Example: "Bee suit,Goldfish,Television"
+        /// </summary>
+        [field: SyncedEntryField] public SyncedEntry<string> ITEM_WHITELIST { get; private set; }
+
+        /// <summary>
+        ///     The comma-separated names of items that will never show up in the store rotation. You're a mean one, Mr. Grinch.
+        ///     Example: "Bee suit,Goldfish,Television"
+        /// </summary>
+        [field: SyncedEntryField] public SyncedEntry<string> ITEM_BLACKLIST { get; private set; }
+
+        /// <summary>
         ///     The percentage chance for ANY item to be on sale in the store rotation. Setting this to '0' disables the entire
         ///     sales system.
         /// </summary>
@@ -102,6 +115,11 @@ namespace StoreRotationConfig
             STOCK_ALL = cfg.BindSyncedEntry("General", "stockAll", false, "Make every item available in the store rotation.");
             STOCK_PURCHASED = cfg.BindSyncedEntry("General", "stockPurchased", true, "Include already-purchased items in the store rotation. "
                 + "If disabled, prevents purchased items from showing up again in future store rotations, and removes them from the current one.");
+            ITEM_WHITELIST = cfg.BindSyncedEntry("General", "itemWhitelist", "", "The comma-separated names of items that will be guaranteed to show up "
+                + "in every store rotation. Whitelisted items are always added on top of the range defined by 'minItems' and 'maxItems'. Has no effect with the 'stockAll' setting enabled. "
+                + "Has no effect if the 'stockAll' setting is enabled.\nExample: \"Bee suit,Goldfish,Television\"");
+            ITEM_BLACKLIST = cfg.BindSyncedEntry("General", "itemBlacklist", "", "The comma-separated names of items that will never show up in the store "
+                + "rotation. You're a mean one, Mr. Grinch.\nExample: \"Bee suit,Goldfish,Television\"");
 
             SALE_CHANCE = cfg.BindSyncedEntry("Sales", "saleChance", 33, new ConfigDescription("The percentage chance for ANY "
                 + "item to be on sale in the store rotation. Setting this to '0' disables the entire sales system.", new AcceptableValueRange<int>(0, 100)));
