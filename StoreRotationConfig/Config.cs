@@ -96,7 +96,7 @@ namespace StoreRotationConfig
         /// <param name="cfg">BepInEx configuration file.</param>
         public Config(ConfigFile cfg) : base(Plugin.GUID)
         {
-            // Bind config entries to config file.
+            // Bind config entries to the config file.
             MIN_ITEMS = cfg.BindSyncedEntry("General", "minItems", 8, "Minimum number of items in the store rotation.");
             MAX_ITEMS = cfg.BindSyncedEntry("General", "maxItems", 12, "Maximum number of items in the store rotation.");
             STOCK_ALL = cfg.BindSyncedEntry("General", "stockAll", false, "Make every item available in the store rotation.");

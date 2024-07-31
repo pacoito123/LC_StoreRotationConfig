@@ -9,6 +9,7 @@ Item sales added; blacklisting and whitelisting, too.
 - Minor fixes for `Terminal.RotateShipDecorSelection()` patch.
 	- `maxItems` value is now used instead of `minItems` when `minItems` is greater than `maxItems`, as intended.
 	- Fixed items not sorting alphabetically with `stockAll` disabled.
+- Updated `LICENSE` name and year.
 
 ### [2.2.1]
 

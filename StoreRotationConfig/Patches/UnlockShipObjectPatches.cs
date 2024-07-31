@@ -13,7 +13,7 @@ namespace StoreRotationConfig.Patches
         [HarmonyPrefix]
         private static void UnlockShipObjectPre(int unlockableID)
         {
-            // Return if 'stockPurchased' setting is enabled, or if local game instance is not hosting the server.
+            // Return if 'stockPurchased' setting is enabled, or if the local game instance is not hosting the server.
             if (Plugin.Settings.STOCK_PURCHASED.Value || !(NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer))
             {
                 return;

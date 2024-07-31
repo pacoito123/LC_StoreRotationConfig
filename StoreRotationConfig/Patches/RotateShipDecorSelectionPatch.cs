@@ -18,8 +18,8 @@ namespace StoreRotationConfig.Patches
         /// <summary>
         ///     Fills 'Terminal.ShipDecorSelection' list with items, reading from the configuration file.
         /// </summary>
-        /// <param name="shipDecorSelection">List containing items currently shown in the store rotation.</param>
-        /// <param name="random">Seeded Random instance used for generating store rotation.</param>
+        /// <param name="shipDecorSelection">List containing items currently in the store rotation.</param>
+        /// <param name="random">Seeded 'Random' instance used for generating a new store rotation.</param>
         private static void RotateShipDecorSelection(List<TerminalNode> shipDecorSelection, Random random)
         {
             // Return if client has not yet fully synced with the host.

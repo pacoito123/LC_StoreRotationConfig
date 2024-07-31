@@ -7,15 +7,20 @@ using Unity.Netcode;
 
 namespace StoreRotationConfig.Patches
 {
+    /// <summary>
+    ///     Patches for adding sales to the store rotation.
+    /// </summary>
     [HarmonyPatch(typeof(Terminal))]
     internal class TerminalItemSalesPatches
     {
+        // Cached dictionary of discount values, using its respective item node as key.
         public static Dictionary<TerminalNode, int> RotationSales { get; private set; }
 
         [HarmonyPatch(nameof(Terminal.RotateShipDecorSelection))]
         [HarmonyPostfix]
         private static void SetRotationSales(Terminal __instance)
         {
+            // Return if 'saleChance' setting is disabled (set to '0').
             if (Plugin.Settings.SALE_CHANCE == 0)
             {
                 return;
@@ -30,6 +35,7 @@ namespace StoreRotationConfig.Patches
                 return;
             }
 
+            // Initialize 'Random' instance using the same seed as vanilla sales.
             Random random = new(StartOfRound.Instance.randomMapSeed + 90);
 
             // Obtain values from the config file.
@@ -49,7 +55,10 @@ namespace StoreRotationConfig.Patches
                 maxSaleItems = minSaleItems;
             }
 
+            // Obtain number of items with sales for this rotation, using parameters from the config file.
             int itemsOnSale = random.Next(maxSaleItems - (int)(maxSaleItems * saleChance) + 1, maxSaleItems + 1);
+
+            // Return if no items are on sale for this rotation.
             if (itemsOnSale <= 0)
             {
                 Plugin.StaticLogger.LogInfo("No items on sale for this rotation...");
@@ -57,20 +66,25 @@ namespace StoreRotationConfig.Patches
                 return;
             }
 
-            itemsOnSale = Math.Clamp(itemsOnSale, minSaleItems, maxSaleItems);
+            // Initialize 'RotationSales' dictionary with its capacity set to however many items are to be on sale.
+            RotationSales = new(itemsOnSale);
 
-            RotationSales = new(__instance.ShipDecorSelection.Count);
-
+            // Clone the 'Terminal.ShipDecorSelection' list for item selection.
             List<TerminalNode> storeRotation = new(__instance.ShipDecorSelection);
+
+            // Iterate for every item that is to be on sale, exiting early if there are no more items in the 'storeRotation' cloned list.
             for (int i = 0; i < itemsOnSale && storeRotation.Count != 0; i++)
             {
+                // Obtain random discount value to apply.
                 int discount = random.Next(minDiscount, maxDiscount + 1);
 
+                // Round discount to the nearest ten (like the regular store) if the 'roundToNearestTen' setting is enabled.
                 if (Plugin.Settings.ROUND_TO_NEAREST_TEN)
                 {
                     discount = (int)Math.Round(discount / 10.0f) * 10;
                 }
 
+                // Obtain random index of the item to apply the discount to.
                 int index = random.Next(0, storeRotation.Count);
 
                 // Add item to the 'RotationSales' dictionary along with its discount, and remove it from the 'storeRotation' cloned list.
@@ -90,6 +104,18 @@ namespace StoreRotationConfig.Patches
                 }); */
         }
 
+        /// <summary>
+        ///     Applies a rotating item's discount (if it has one assigned in the current rotation) right before its purchase.
+        /// </summary>
+        ///     ... (Terminal:630)
+        ///     else if (node.buyRerouteToMoon != -1 || node.shipUnlockableID != -1)
+        ///     {
+        ///         // this.totalCostOfItems = node.itemCost;
+        ///         
+        ///         -> this.totalCostOfItems = call(node, this.totalCostOfItems);
+        ///     }
+        /// <param name="instructions">Iterator with original IL instructions.</param>
+        /// <returns>Iterator with modified IL instructions.</returns>
         [HarmonyPatch("LoadNewNodeIfAffordable")]
         [HarmonyTranspiler]
         private static IEnumerable<CodeInstruction> TerminalLoadNewNodeIfAffordableTranspiler(IEnumerable<CodeInstruction> instructions)
@@ -103,24 +129,39 @@ namespace StoreRotationConfig.Patches
                 new(OpCodes.Ldfld, AccessTools.Field(typeof(Terminal), "totalCostOfItems")))
             .InsertAndAdvance(Transpilers.EmitDelegate((TerminalNode node, int totalCostOfItems) =>
                 {
-                    if (Plugin.Settings.SALE_CHANCE != 0 && RotationSales.ContainsKey(StartOfRound.Instance.unlockablesList
-                        .unlockables[node.shipUnlockableID]?.shopSelectionNode))
-                    {
-                        TerminalNode item = StartOfRound.Instance.unlockablesList.unlockables[node.shipUnlockableID].shopSelectionNode;
+                    // Obtain node of the item currently selected for purchase.
+                    TerminalNode item = StartOfRound.Instance.unlockablesList.unlockables[node.shipUnlockableID]?.shopSelectionNode;
 
+                    // Check if 'salesChance' is enabled and the 'RotationSales' dictionary contains a discount for the item to purchase.
+                    if (Plugin.Settings.SALE_CHANCE != 0 && RotationSales.ContainsKey(item))
+                    {
                         Plugin.StaticLogger.LogDebug($"Applying discount of {RotationSales[item]} to {item.creatureName}...");
 
+                        // Apply discount to the total cost of the purchase.
                         return item.itemCost - (int)(item.itemCost * (RotationSales[item] / 100f));
                     }
                     else
                     {
-                        return totalCostOfItems;
+                        // Leave total cost of the purchase unchanged.
+                        return node.itemCost;
                     }
                 }))
             .Insert(new CodeInstruction(OpCodes.Stfld, AccessTools.Field(typeof(Terminal), "totalCostOfItems")))
             .InstructionEnumeration();
         }
 
+        /// <summary>
+        ///     Displays rotating item discounts and their modified prices in the store page.
+        /// </summary>
+        ///     ... (Terminal:344)
+        ///     for (int m = 0; m &lt; this.ShipDecorSelection.Count; m++)
+        ///     {
+        ///         stringBuilder5.Append(string.Format("\n{0}  //  ${1}", this.ShipDecorSelection[m].creatureName, this.ShipDecorSelection[m].itemCost));
+        ///         
+        ///         -> call(this.ShipDecorSelection, stringBuilder5, m);
+        ///     }
+        /// <param name="instructions">Iterator with original IL instructions.</param>
+        /// <returns>Iterator with modified IL instructions.</returns>
         [HarmonyPatch("TextPostProcess")]
         [HarmonyTranspiler]
         private static IEnumerable<CodeInstruction> TextPostProcessTranspiler(IEnumerable<CodeInstruction> instructions)
@@ -136,14 +177,17 @@ namespace StoreRotationConfig.Patches
                 new(OpCodes.Ldloc_S, 14))
             .Insert(Transpilers.EmitDelegate((List<TerminalNode> storeRotation, StringBuilder sb, int index) =>
                 {
+                    // Obtain item about to be displayed in the store page.
+                    TerminalNode item = storeRotation[index];
+
+                    // Check if 'salesChance' is enabled and the 'RotationSales' dictionary contains a discount for the item about to be displayed.
                     if (Plugin.Settings.SALE_CHANCE != 0 && RotationSales != null && RotationSales.ContainsKey(storeRotation[index]))
                     {
-                        TerminalNode item = storeRotation[index];
-
                         Plugin.StaticLogger.LogDebug($"Appending {RotationSales[item]} to {item.creatureName}...");
 
-                        _ = sb.Replace(item.itemCost.ToString(), (item.itemCost - (int)(item.itemCost * (RotationSales[item] / 100f)))
-                            .ToString()).Append($"   ({RotationSales[item]}% OFF!)");
+                        // Replace old price with the discounted price, and append sale tag to the displayed text.
+                        _ = sb.Replace(item.itemCost.ToString(), (item.itemCost - (int)(item.itemCost * (RotationSales[item] / 100f))).ToString())
+                            .Append($"   ({RotationSales[item]}% OFF!)");
                     }
                 }
             )).InstructionEnumeration();
