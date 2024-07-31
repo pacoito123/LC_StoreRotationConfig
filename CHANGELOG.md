@@ -2,11 +2,10 @@
 
 Item sales added; blacklisting and whitelisting, too.
 - Implemented configurable sales for items in the rotating shop.
-	- `saleChance` determines the likelihood for ANY item to be on sale in every store rotation.
+	- `saleChance` determines the likelihood for ANY item to be on sale in every store rotation, with the value `0` disabling the entire sale system.
 	- `minSaleItems` and `maxSaleItems` control the number of items that can be on sale at a time.
-	- `minSaleAmount` and `maxSaleAmount` control the amount an item can be discounted by.
-	- `roundToTen` rounds sale amounts to the nearest ten (like the regular store).
-	- `enableSales` determines whether or not the sale system is active.
+	- `minDiscount` and `maxDiscount` control the amount an item can be discounted by.
+	- `roundToNearestTen` rounds sale amounts to the nearest ten (like the regular store).
 - Minor fixes for `Terminal.RotateShipDecorSelection()` patch.
 	- `maxItems` value is now used instead of `minItems` when `minItems` is greater than `maxItems`, as intended.
 	- Fixed items not sorting alphabetically with `stockAll` disabled.

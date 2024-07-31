@@ -36,6 +36,37 @@ namespace StoreRotationConfig
         [field: SyncedEntryField] public SyncedEntry<bool> STOCK_PURCHASED { get; private set; }
 
         /// <summary>
+        ///     The percentage chance for ANY item to be on sale in the store rotation. Setting this to '0' disables the entire
+        ///     sales system.
+        /// </summary>
+        [field: SyncedEntryField] public SyncedEntry<int> SALE_CHANCE { get; private set; }
+
+        /// <summary>
+        ///     The minimum number of items that can be on sale at a time.
+        /// </summary>
+        [field: SyncedEntryField] public SyncedEntry<int> MIN_SALE_ITEMS { get; private set; }
+
+        /// <summary>
+        ///     The maximum number of items that can be on sale at a time.
+        /// </summary>
+        [field: SyncedEntryField] public SyncedEntry<int> MAX_SALE_ITEMS { get; private set; }
+
+        /// <summary>
+        ///     The minimum discount to apply to items on sale.
+        /// </summary>
+        [field: SyncedEntryField] public SyncedEntry<int> MIN_DISCOUNT { get; private set; }
+
+        /// <summary>
+        ///     The maximum discount to apply to items on sale.
+        /// </summary>
+        [field: SyncedEntryField] public SyncedEntry<int> MAX_DISCOUNT { get; private set; }
+
+        /// <summary>
+        ///     Round rotation store discounts to the nearest ten (like the regular store).
+        /// </summary>
+        [field: SyncedEntryField] public SyncedEntry<bool> ROUND_TO_NEAREST_TEN { get; private set; }
+
+        /// <summary>
         ///     Sort every item in the store rotation alphabetically.
         /// </summary>
         public ConfigEntry<bool> SORT_ITEMS { get; private set; }
@@ -71,6 +102,17 @@ namespace StoreRotationConfig
             STOCK_ALL = cfg.BindSyncedEntry("General", "stockAll", false, "Make every item available in the store rotation.");
             STOCK_PURCHASED = cfg.BindSyncedEntry("General", "stockPurchased", true, "Include already-purchased items in the store rotation. "
                 + "If disabled, prevents purchased items from showing up again in future store rotations, and removes them from the current one.");
+
+            SALE_CHANCE = cfg.BindSyncedEntry("Sales", "saleChance", 33, new ConfigDescription("The percentage chance for ANY "
+                + "item to be on sale in the store rotation. Setting this to '0' disables the entire sales system.", new AcceptableValueRange<int>(0, 100)));
+            MIN_SALE_ITEMS = cfg.BindSyncedEntry("Sales", "minSaleItems", 1, "The minimum number of items that can be on sale at a time.");
+            MAX_SALE_ITEMS = cfg.BindSyncedEntry("Sales", "maxSaleItems", 5, "The maximum number of items that can be on sale at a time.");
+            MIN_DISCOUNT = cfg.BindSyncedEntry("Sales", "minDiscount", 10, new ConfigDescription("The minimum discount to apply "
+                + "to items on sale.", new AcceptableValueRange<int>(1, 100)));
+            MAX_DISCOUNT = cfg.BindSyncedEntry("Sales", "maxDiscount", 50, new ConfigDescription("The maximum discount to apply "
+                + "to items on sale.", new AcceptableValueRange<int>(1, 100)));
+            ROUND_TO_NEAREST_TEN = cfg.BindSyncedEntry("Sales", "roundToNearestTen", true, "Round rotation store discounts to the nearest ten "
+                + "(like the regular store).");
 
             SORT_ITEMS = cfg.Bind("Miscellaneous", "sortItems", false, "Sort every item in the store rotation alphabetically.");
             RELATIVE_SCROLL = cfg.Bind("Miscellaneous", "relativeScroll", false, "[EXPERIMENTAL] Adapt terminal scroll to the "
