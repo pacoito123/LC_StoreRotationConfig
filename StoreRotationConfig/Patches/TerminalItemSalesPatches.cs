@@ -93,15 +93,6 @@ namespace StoreRotationConfig.Patches
             }
 
             Plugin.StaticLogger.LogInfo($"{RotationSales.Count} item(s) on sale!");
-
-            /* TODO: Use for a future feature.
-            __instance.ShipDecorSelection.DoIf(
-                condition: RotationSales.ContainsKey,
-                action: item =>
-                {
-                    item.itemCost -= (int)(item.itemCost * (RotationSales[item] / 100f));
-                    Plugin.StaticLogger.LogDebug($"Discount of {RotationSales[item]} applied to {item.creatureName}!");
-                }); */
         }
 
         /// <summary>
@@ -110,7 +101,7 @@ namespace StoreRotationConfig.Patches
         ///     ... (Terminal:630)
         ///     else if (node.buyRerouteToMoon != -1 || node.shipUnlockableID != -1)
         ///     {
-        ///         // this.totalCostOfItems = node.itemCost;
+        ///         this.totalCostOfItems = node.itemCost;
         ///         
         ///         -> this.totalCostOfItems = call(node, this.totalCostOfItems);
         ///     }
@@ -118,33 +109,39 @@ namespace StoreRotationConfig.Patches
         /// <returns>Iterator with modified IL instructions.</returns>
         [HarmonyPatch("LoadNewNodeIfAffordable")]
         [HarmonyTranspiler]
+        [HarmonyPriority(Priority.High)]
         private static IEnumerable<CodeInstruction> TerminalLoadNewNodeIfAffordableTranspiler(IEnumerable<CodeInstruction> instructions)
         {
             return new CodeMatcher(instructions).MatchForward(false,
                 new(OpCodes.Ldfld, AccessTools.Field(typeof(TerminalNode), nameof(TerminalNode.itemCost))),
                 new(OpCodes.Stfld, AccessTools.Field(typeof(Terminal), "totalCostOfItems")))
-            .RemoveInstructions(2)
+            .Advance(2)
             .InsertAndAdvance(
+                new(OpCodes.Ldarg_0),
+                new(OpCodes.Ldarg_1),
                 new(OpCodes.Ldarg_0),
                 new(OpCodes.Ldfld, AccessTools.Field(typeof(Terminal), "totalCostOfItems")))
             .InsertAndAdvance(Transpilers.EmitDelegate((TerminalNode node, int totalCostOfItems) =>
                 {
+                    // Leave total cost of purchase unchanged if routing to a moon.
+                    if (node.buyRerouteToMoon != -1)
+                    {
+                        return totalCostOfItems;
+                    }
+
                     // Obtain node of the item currently selected for purchase.
                     TerminalNode item = StartOfRound.Instance.unlockablesList.unlockables[node.shipUnlockableID]?.shopSelectionNode;
 
-                    // Check if 'salesChance' is enabled and the 'RotationSales' dictionary contains a discount for the item to purchase.
-                    if (Plugin.Settings.SALE_CHANCE != 0 && RotationSales.ContainsKey(item))
+                    // Return if 'salesChance' is disabled OR the 'RotationSales' dictionary doesn't contain a discount for the currently selected item.
+                    if (Plugin.Settings.SALE_CHANCE == 0 || !RotationSales.ContainsKey(item))
                     {
-                        Plugin.StaticLogger.LogDebug($"Applying discount of {RotationSales[item]} to {item.creatureName}...");
+                        return totalCostOfItems;
+                    }
 
-                        // Apply discount to the total cost of the purchase.
-                        return item.itemCost - (int)(item.itemCost * (RotationSales[item] / 100f));
-                    }
-                    else
-                    {
-                        // Leave total cost of the purchase unchanged.
-                        return node.itemCost;
-                    }
+                    Plugin.StaticLogger.LogDebug($"Applying discount of {RotationSales[item]} to {item.creatureName}...");
+
+                    // Apply discount to the total cost of the purchase.
+                    return item.itemCost - (int)(item.itemCost * (RotationSales[item] / 100f));
                 }))
             .Insert(new CodeInstruction(OpCodes.Stfld, AccessTools.Field(typeof(Terminal), "totalCostOfItems")))
             .InstructionEnumeration();
@@ -190,15 +187,17 @@ namespace StoreRotationConfig.Patches
                         // Obtain item about to be displayed in the store page.
                         TerminalNode item = storeRotation[index];
 
-                        // Check if 'salesChance' is enabled and the 'RotationSales' dictionary contains a discount for the item about to be displayed.
-                        if (Plugin.Settings.SALE_CHANCE != 0 && RotationSales != null && RotationSales.ContainsKey(storeRotation[index]))
+                        // Return if 'salesChance' is disabled OR the 'RotationSales' dictionary doesn't contain a discount for the item about to be displayed.
+                        if (Plugin.Settings.SALE_CHANCE == 0 || RotationSales == null || !RotationSales.ContainsKey(item))
                         {
-                            Plugin.StaticLogger.LogDebug($"Appending {RotationSales[item]} to {item.creatureName}...");
-
-                            // Replace old price with the discounted price, and append sale tag to the displayed text.
-                            _ = sb.Replace(item.itemCost.ToString(), (item.itemCost - (int)(item.itemCost * (RotationSales[item] / 100f))).ToString())
-                                .Append($"   ({RotationSales[item]}% OFF!)");
+                            return;
                         }
+
+                        Plugin.StaticLogger.LogDebug($"Appending {RotationSales[item]} to {item.creatureName}...");
+
+                        // Replace old price with the discounted price, and append sale tag to the displayed text.
+                        _ = sb.Replace(item.itemCost.ToString(), (item.itemCost - (int)(item.itemCost * (RotationSales[item] / 100f))).ToString())
+                            .Append($"   ({RotationSales[item]}% OFF!)");
                     }
                 )).InstructionEnumeration();
         }

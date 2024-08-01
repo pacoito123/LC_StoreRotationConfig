@@ -1,3 +1,10 @@
+### [2.3.1]
+
+Compatibility patch for Lategame Upgrades (and likely some moon-routing mods).
+- Fixed compatibility with [Lategame Upgrades](https://thunderstore.io/c/lethal-company/p/malco/Lategame_Upgrades)' `Efficient Engines` upgrade.
+	- `Terminal.LoadNewNodeIfAffordable()` transpiler no longer removes instructions or touches `Terminal.totalCostOfItems` when routing to a moon.
+	- Changed priority of `Terminal.LoadNewNodeIfAffordable()` to `High` (600), so it's applied earlier.
+
 ### [2.3.0]
 
 Configurable item sales, whitelisting, and blacklisting.
