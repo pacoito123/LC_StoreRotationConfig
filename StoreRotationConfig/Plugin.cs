@@ -7,7 +7,7 @@ using System.Reflection;
 namespace StoreRotationConfig
 {
     /// <summary>
-    ///     Configure the number of items in each store rotation, show them all, remove purchased items, or sort them.
+    ///     Configure the number of items in each store rotation, show them all, remove purchases, sort them, and/or enable sales for them.
     /// </summary>
     [BepInPlugin(GUID, PLUGIN_NAME, VERSION)]
     [BepInDependency("com.sigurd.csync", "5.0.1")]

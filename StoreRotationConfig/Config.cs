@@ -36,9 +36,10 @@ namespace StoreRotationConfig
         [field: SyncedEntryField] public SyncedEntry<bool> STOCK_PURCHASED { get; private set; }
 
         /// <summary>
-        ///     The comma-separated names of items that will be guaranteed to show up in every store rotation. Whitelisted items are
-        ///     always added on top of the range defined by 'minItems' and 'maxItems'. Has no effect with the 'stockAll' setting enabled.
-        ///     Example: "Bee suit,Goldfish,Television"
+        ///     The comma-separated names of items that will be guaranteed to show up in every store rotation. Whitelisted items
+        ///     are always added on top of the range defined by the 'minItems' and 'maxItems' settings, and take priority over the
+        ///     blacklist. Has no effect with the 'stockAll' setting enabled.
+        ///     Example: \"Bee suit,Goldfish,Television\".
         /// </summary>
         [field: SyncedEntryField] public SyncedEntry<string> ITEM_WHITELIST { get; private set; }
 
@@ -85,9 +86,9 @@ namespace StoreRotationConfig
         public ConfigEntry<bool> SORT_ITEMS { get; private set; }
 
         /// <summary>
-        ///     Adapt terminal scroll to the number of lines in the current terminal page, instead of a flat value.
-        ///     Should fix cases where scrolling skips over several lines, which is especially noticeable when enabling 'stockAll'
-        ///     with a large number of items in the store.
+        ///     Adapt terminal scroll to the number of lines in the current terminal page, instead of a flat value. Should fix
+        ///     cases where scrolling skips over several lines, which is especially noticeable when enabling 'stockAll' with a
+        ///     large number of items added to the rotating store.
         /// </summary>
         public ConfigEntry<bool> RELATIVE_SCROLL { get; private set; }
 
@@ -116,8 +117,8 @@ namespace StoreRotationConfig
             STOCK_PURCHASED = cfg.BindSyncedEntry("General", "stockPurchased", true, "Include already-purchased items in the store rotation. "
                 + "If disabled, prevents purchased items from showing up again in future store rotations, and removes them from the current one.");
             ITEM_WHITELIST = cfg.BindSyncedEntry("General", "itemWhitelist", "", "The comma-separated names of items that will be guaranteed to show up "
-                + "in every store rotation. Whitelisted items are always added on top of the range defined by 'minItems' and 'maxItems'. Has no effect with the 'stockAll' setting enabled. "
-                + "Has no effect if the 'stockAll' setting is enabled.\nExample: \"Bee suit,Goldfish,Television\"");
+                + "in every store rotation. Whitelisted items are always added on top of the range defined by the 'minItems' and 'maxItems' settings, and take priority over the blacklist. "
+                + "Has no effect with the 'stockAll' setting enabled.\nExample: \"Bee suit,Goldfish,Television\"");
             ITEM_BLACKLIST = cfg.BindSyncedEntry("General", "itemBlacklist", "", "The comma-separated names of items that will never show up in the store "
                 + "rotation. You're a mean one, Mr. Grinch.\nExample: \"Bee suit,Goldfish,Television\"");
 
@@ -133,9 +134,9 @@ namespace StoreRotationConfig
                 + "(like the regular store).");
 
             SORT_ITEMS = cfg.Bind("Miscellaneous", "sortItems", false, "Sort every item in the store rotation alphabetically.");
-            RELATIVE_SCROLL = cfg.Bind("Miscellaneous", "relativeScroll", false, "[EXPERIMENTAL] Adapt terminal scroll to the "
-                + "number of lines in the current terminal page, instead of a flat value. Should fix cases where scrolling skips over several lines, which is "
-                + "especially noticeable when enabling 'stockAll' with a large number of items in the store.");
+            RELATIVE_SCROLL = cfg.Bind("Miscellaneous", "relativeScroll", true, "Adapt terminal scroll to the number of lines in the current terminal "
+                + "page, instead of a flat value. Should fix cases where scrolling skips over several lines, which is especially noticeable when enabling 'stockAll' with a large number of items "
+                + "added to the rotating store.");
             LINES_TO_SCROLL = cfg.Bind("Miscellaneous", "linesToScroll", 20, new ConfigDescription("Number of lines to scroll at a time with "
                 + "'relativeScroll' enabled.", new AcceptableValueRange<int>(1, 28)));
             // ...

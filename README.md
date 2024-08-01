@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/github/license/pacoito123/LC_StoreRotationConfig?style=for-the-badge&logo=github&color=teal
 )](https://github.com/pacoito123/LC_StoreRotationConfig/blob/main/LICENSE)
 
-> Configure the number of items in each store rotation, show them all, remove purchased items, or sort them.
+> Configure the number of items in each store rotation, show them all, remove purchases, sort them, and/or enable sales for them.
 
 ## Description
 
@@ -29,15 +29,29 @@ Uses [CSync (v5.0.1 and above)](https://thunderstore.io/c/lethal-company/p/Sigur
 
 ## Configuration
 
+### General
+
 By default, the number of available items in the store is increased from **4-5** (vanilla) to **8-12**, but this range can be configured via the `minItems` and `maxItems` config settings. Set both numbers to the same value to have a fixed number of items in every rotation. If `minItems` is larger than `maxItems`, both numbers are set to the larger value. To avoid any issues with negative numbers, the absolute value of these two settings is used when generating the store rotation.
 
 Alternatively, the `showAll` setting (off by default) can be enabled to simply add every purchasable item to the store rotation. Partly intended for fixing name conflict issues when buying stuff at the terminal, but there should be no problems using it during a regular run.
 
 Disabling the `showPurchased` setting (on by default) will prevent already-purchased items from showing up in future store rotations, and will also immediately remove newly-purchased items from the current rotation.
 
-The store rotation can also be displayed in alphabetical order by enabling the `sortItems` setting (off by default).
+To guarantee an item showing up in the store rotation, its name can be added to the comma-separated `itemWhitelist` setting, which adds the specified items to every store rotation separate from the range of items defined by the `minItems` and `maxItems` settings. Likewise, to prevent items from ever showing up in the store rotation, its name can be added to `itemBlacklist`.
 
-For cases where having too many items in the store rotation causes scrolling to skip over several lines, either with `stockAll` enabled or with a high `minItems`/`maxItems` value, enabling the `relativeScroll` setting (off by default) will adapt scrolling to a certain number of lines at a time, determined by the `linesToScroll` setting (20 by default), and relative to the length of the currently shown terminal page.
+### Rotation sales
+
+As of `v2.3.0`, items in the rotating shop can be configured to occasionally go on sale. By default, there's a roughly **33% chance** for **1-5** items to go on sale with a discount ranging from **10-50%** and rounded to the nearest ten, but everything is configurable.
+
+The `saleChance` setting controls the percentage chance for rotating items to go on sale, with the sales system disabling itself completely if set to **0**. The number of items that can be on sale at a time can be configured by the `minSaleItems` and `maxSaleItems` settings, and the amount that can be discounted can be configured by the `minDiscount` and `maxDiscount`. Whether or not discounts should be rounded to the nearest ten, like the regular store, is determined by the `roundToNearestTen` setting.
+
+### Client-side tweaks
+
+The store rotation can be displayed in alphabetical order by enabling the `sortItems` setting (off by default).
+
+For cases where having too many items in the store rotation causes scrolling to skip over several lines, either with `stockAll` enabled or with a high `minItems`/`maxItems` value, enabling the `relativeScroll` setting (on by default) will adapt scrolling to a certain number of lines at a time, determined by the `linesToScroll` setting (20 by default), and relative to the length of the currently shown terminal page.
+
+These settings are not synced with the host, and can be freely toggled without causing any issues.
 
 ## Compatibility
 
@@ -45,7 +59,7 @@ The patched `Terminal.RotateShipDecorSelection()` method is functionally the sam
 
 There's also the possibility of something going wrong if the `Terminal.ShipDecorSelection` list is required by another mod immediately after joining a lobby, but prior to the ship unlockables sync; the list is only filled _after_ a successful sync with the host, and it remains empty until then. So far I haven't encountered any issues with it, but if any incompatibilities _are_ found, please let me know in the [relevant thread](https://discord.com/channels/1168655651455639582/1212542584610881557) in the Lethal Company Modding Discord server, or [open an issue on GitHub](https://github.com/pacoito123/LC_StoreRotationConfig/issues).
 
-In `v49`, there's a name conflict between the `Purple suit` and the `Pajama suit`, which adds a second, unpurchasable `Pajama suit` to the store. If every item available in the store is bought, with the `showPurchased` setting disabled, only the `Pajama suit` will remain in the store rotation. This is fixed in `v50`, with the `Purple suit` having been made properly purchasable.
+The sales system is completely separate from the regular store item sales, so it _shouldn't_ conflict with other mods that may modify these sales (e.g. allowing more items to be on sale). What _is_ likely to break, however, is displaying the discount number in the store page (e.g. `50% OFF!`) if another mod is changing the terminal store page. The discount should still apply regardless, but I'll try to patch any incompatibilities found as soon as possible.
 
 The `relativeScroll` tweak is not limited to just the store page, and could potentially fix scrolling issues in other terminal pages, but it could also be incompatible or cause issues with other mods that modify or set the `PlayerControllerB.terminalScrollVertical` value.
 
@@ -55,4 +69,4 @@ The `relativeScroll` tweak is not limited to just the store page, and could pote
 
 ---
 
-![alt](https://files.catbox.moe/5nli7q.png "Store with every vanilla item available for purchase in v50, in alphabetical order.")
+![alt](https://files.catbox.moe/z3fzcw.png "Store rotation with every vanilla item available for purchase in v56 in alphabetical order, 4 of which are on sale.")

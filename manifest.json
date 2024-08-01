@@ -2,7 +2,7 @@
 	"name": "StoreRotationConfig",
 	"version_number": "2.3.0",
 	"website_url": "https://github.com/pacoito123/LC_StoreRotationConfig",
-	"description": "Configure the number of items in each store rotation, show them all, remove purchased items, or sort them. Also includes a fix for the terminal scrolling too far and skipping lines.",
+	"description": "Configure the number of items in each store rotation, show them all, remove purchases, sort them, and/or enable sales for them. Also includes a fix for the terminal scrolling too far and skipping lines.",
 	"dependencies": [
 		"BepInEx-BepInExPack-5.4.2100",
 		"Sigurd-CSync-5.0.1"
