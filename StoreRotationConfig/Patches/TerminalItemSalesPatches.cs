@@ -152,13 +152,14 @@ namespace StoreRotationConfig.Patches
 
         /// <summary>
         ///     Displays rotating item discounts and their modified prices in the store page.
+        ///     Dynamic operands maintain compatibility between game versions.
         /// </summary>
         ///     ... (Terminal:344)
         ///     for (int m = 0; m &lt; this.ShipDecorSelection.Count; m++)
         ///     {
-        ///         stringBuilder5.Append(string.Format("\n{0}  //  ${1}", this.ShipDecorSelection[m].creatureName, this.ShipDecorSelection[m].itemCost));
+        ///         stringBuilder*.Append(string.Format("\n{0}  //  ${1}", this.ShipDecorSelection[m].creatureName, this.ShipDecorSelection[m].itemCost));
         ///         
-        ///         -> call(this.ShipDecorSelection, stringBuilder5, m);
+        ///         -> call(this.ShipDecorSelection, stringBuilder*, m);
         ///     }
         /// <param name="instructions">Iterator with original IL instructions.</param>
         /// <returns>Iterator with modified IL instructions.</returns>
@@ -166,31 +167,40 @@ namespace StoreRotationConfig.Patches
         [HarmonyTranspiler]
         private static IEnumerable<CodeInstruction> TextPostProcessTranspiler(IEnumerable<CodeInstruction> instructions)
         {
-            return new CodeMatcher(instructions).MatchForward(false,
-                new CodeMatch(OpCodes.Ldstr, "\n{0}  //  ${1}"))
-            .MatchForward(false, new CodeMatch(OpCodes.Pop))
-            .Advance(1)
-            .InsertAndAdvance(
+            CodeMatcher matcher = new CodeMatcher(instructions).MatchForward(false,
+                new(OpCodes.Ldstr, "\n{0}  //  ${1}"),
                 new(OpCodes.Ldarg_0),
-                new(OpCodes.Ldfld, AccessTools.Field(typeof(Terminal), nameof(Terminal.ShipDecorSelection))),
-                new(OpCodes.Ldloc_S, 13),
-                new(OpCodes.Ldloc_S, 14))
-            .Insert(Transpilers.EmitDelegate((List<TerminalNode> storeRotation, StringBuilder sb, int index) =>
-                {
-                    // Obtain item about to be displayed in the store page.
-                    TerminalNode item = storeRotation[index];
+                new(OpCodes.Ldfld, AccessTools.Field(typeof(Terminal), nameof(Terminal.ShipDecorSelection))));
 
-                    // Check if 'salesChance' is enabled and the 'RotationSales' dictionary contains a discount for the item about to be displayed.
-                    if (Plugin.Settings.SALE_CHANCE != 0 && RotationSales != null && RotationSales.ContainsKey(storeRotation[index]))
+            // Obtain operand for the StringBuilder instance using cloned instructions.
+            object sbOperand = matcher.Clone().MatchBack(false, new CodeMatch(OpCodes.Newobj)).Advance(1).Operand;
+
+            // Obtain operand for the loop index using cloned instructions.
+            object indexOperand = matcher.Clone().Advance(3).Operand;
+
+            return matcher.MatchForward(false, new CodeMatch(OpCodes.Pop))
+                .Advance(1)
+                .InsertAndAdvance(
+                    new(OpCodes.Ldarg_0),
+                    new(OpCodes.Ldfld, AccessTools.Field(typeof(Terminal), nameof(Terminal.ShipDecorSelection))),
+                    new(OpCodes.Ldloc_S, sbOperand),
+                    new(OpCodes.Ldloc_S, indexOperand))
+                .Insert(Transpilers.EmitDelegate((List<TerminalNode> storeRotation, StringBuilder sb, int index) =>
                     {
-                        Plugin.StaticLogger.LogDebug($"Appending {RotationSales[item]} to {item.creatureName}...");
+                        // Obtain item about to be displayed in the store page.
+                        TerminalNode item = storeRotation[index];
 
-                        // Replace old price with the discounted price, and append sale tag to the displayed text.
-                        _ = sb.Replace(item.itemCost.ToString(), (item.itemCost - (int)(item.itemCost * (RotationSales[item] / 100f))).ToString())
-                            .Append($"   ({RotationSales[item]}% OFF!)");
+                        // Check if 'salesChance' is enabled and the 'RotationSales' dictionary contains a discount for the item about to be displayed.
+                        if (Plugin.Settings.SALE_CHANCE != 0 && RotationSales != null && RotationSales.ContainsKey(storeRotation[index]))
+                        {
+                            Plugin.StaticLogger.LogDebug($"Appending {RotationSales[item]} to {item.creatureName}...");
+
+                            // Replace old price with the discounted price, and append sale tag to the displayed text.
+                            _ = sb.Replace(item.itemCost.ToString(), (item.itemCost - (int)(item.itemCost * (RotationSales[item] / 100f))).ToString())
+                                .Append($"   ({RotationSales[item]}% OFF!)");
+                        }
                     }
-                }
-            )).InstructionEnumeration();
+                )).InstructionEnumeration();
         }
     }
 }
