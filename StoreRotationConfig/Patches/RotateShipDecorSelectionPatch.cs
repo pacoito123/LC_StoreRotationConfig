@@ -88,7 +88,7 @@ namespace StoreRotationConfig.Patches
                     if (sortItems)
                     {
                         // Sort 'AllItems' list alphabetically.
-                        AllItems.Sort((x, y) => string.Compare(x.unlockableName, y.unlockableName));
+                        AllItems.Sort((x, y) => string.Compare(x.shopSelectionNode?.creatureName, y.shopSelectionNode?.creatureName));
                     }
 
                     // Fill store rotation with every item in the 'AllItems' list.
@@ -147,7 +147,7 @@ namespace StoreRotationConfig.Patches
             if (sortItems && storeRotation.Count > 1)
             {
                 // Sort 'storeRotation' list alphabetically.
-                storeRotation.Sort((x, y) => string.Compare(x.unlockableName, y.unlockableName));
+                storeRotation.Sort((x, y) => string.Compare(x.shopSelectionNode?.creatureName, y.shopSelectionNode?.creatureName));
             }
 
             // Fill store rotation with every item in the 'storeRotation' list.

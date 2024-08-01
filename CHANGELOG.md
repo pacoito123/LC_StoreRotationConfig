@@ -20,6 +20,8 @@ Configurable item sales, whitelisting, and blacklisting.
 - Minor fixes for `Terminal.RotateShipDecorSelection()` patch.
 	- `maxItems` value is now used instead of `minItems` when `minItems` is greater than `maxItems`, as intended.
 	- Fixed items not sorting alphabetically with `stockAll` disabled.
+	- Alphabetical sort now uses `TerminalNode.creatureName` (name displayed in the store page) instead of `UnlockableItem.unlockableName`.
+- Changed default value for `relativeScroll` to enabled.
 - Everything should still be compatible with every game version since `v45`.
 - Updated `LICENSE` name and year.
 
