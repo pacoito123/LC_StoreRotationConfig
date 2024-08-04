@@ -1,4 +1,6 @@
+using GameNetcodeStuff;
 using HarmonyLib;
+using StoreRotationConfig.Compatibility;
 using Unity.Netcode;
 
 namespace StoreRotationConfig.Patches
@@ -46,6 +48,24 @@ namespace StoreRotationConfig.Patches
             // Plugin.Settings.ConfigSynced = false;
             UnlockablesSynced = false;
             // ...
+
+            // Handle 'TerminalFormatter' compatibility here since I can't seem to get it to load before my mod, despite the soft dependency.
+            if (TerminalFormatterCompatibility.Enabled && !TerminalFormatterCompatibility.Patched)
+            {
+                Plugin.StaticLogger.LogInfo($"Patching 'TerminalFormatter'...");
+
+                // Patch 'TerminalFormatter.Nodes.Store.GetNodeText' to display discounts assigned to the rotating store.
+                Plugin.Harmony.PatchAll(typeof(TerminalFormatterCompatibility));
+
+                // Unpatch 'relativeScroll' tweak (already present in 'TerminalFormatter').
+                Plugin.Harmony.Unpatch(AccessTools.Method(typeof(PlayerControllerB), "ScrollMouse_performed"),
+                    HarmonyPatchType.Transpiler, Plugin.GUID);
+
+                // Toggle patched status to avoid running more than once (every menu reload).
+                TerminalFormatterCompatibility.Patched = true;
+
+                Plugin.StaticLogger.LogInfo($"'TerminalFormatter' patched!");
+            }
         }
     }
 }

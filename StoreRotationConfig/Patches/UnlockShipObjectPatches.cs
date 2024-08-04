@@ -7,7 +7,7 @@ namespace StoreRotationConfig.Patches
     ///     Patches for removing purchased items from both current and future store rotations.
     /// </summary>
     [HarmonyPatch(typeof(StartOfRound))]
-    internal class UnlockShipObjectPatch
+    internal class UnlockShipObjectPatches
     {
         [HarmonyPatch("UnlockShipObject", typeof(int))]
         [HarmonyPrefix]

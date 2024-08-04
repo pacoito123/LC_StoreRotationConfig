@@ -3,7 +3,7 @@
     <PropertyGroup>
         <AssemblyName>StoreRotationConfig</AssemblyName>
         <Description>Configure the number of items in each store rotation, show them all, remove purchases, sort them, and/or enable sales for them.</Description>
-        <Version>2.3.1</Version>
+        <Version>2.3.2</Version>
     </PropertyGroup>
 
     <!-- Project properties. -->
@@ -45,6 +45,10 @@
         </Reference>
         <Reference Include="Unity.Netcode.Runtime">
             <HintPath>managed\Unity.Netcode.Runtime.dll</HintPath>
+        </Reference>
+        <!-- Compatibility with other mods. -->
+        <Reference Include="TerminalFormatter">
+            <HintPath>managed\TerminalFormatter.dll</HintPath>
         </Reference>
     </ItemGroup>
 

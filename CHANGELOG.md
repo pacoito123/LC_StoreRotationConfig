@@ -1,6 +1,17 @@
+### [2.3.2]
+
+Compatibility with TerminalFormatter's modified store, among other things.
+- Added [TerminalFormatter](https://thunderstore.io/c/lethal-company/p/mrov/TerminalFormatter) as a soft dependency.
+	- _I think?_
+- Sales for rotating items should now display with [TerminalFormatter](https://thunderstore.io/c/lethal-company/p/mrov/TerminalFormatter) installed.
+	- Added transpiler for `Store.GetNodeText()` to display discounted prices and amounts in the store page whenever an item is on sale.
+	- Temporary fix until proper compatibility can be made.
+- `relativeScroll` now unpatches itself if [TerminalFormatter](https://thunderstore.io/c/lethal-company/p/mrov/TerminalFormatter) is installed, since it already includes it.
+- Patching is done upon loading into the main menu for the first time.
+
 ### [2.3.1]
 
-Compatibility patch for Lategame Upgrades (and likely some moon-routing mods).
+Compatibility patch for Lategame Upgrades (and likely other moon-routing price adjustment mods).
 - Fixed compatibility with [Lategame Upgrades](https://thunderstore.io/c/lethal-company/p/malco/Lategame_Upgrades)' `Efficient Engines` upgrade.
 	- `Terminal.LoadNewNodeIfAffordable()` transpiler no longer removes instructions or touches `Terminal.totalCostOfItems` when routing to a moon.
 	- Changed priority of `Terminal.LoadNewNodeIfAffordable()` to `High` (600), so it's applied earlier.

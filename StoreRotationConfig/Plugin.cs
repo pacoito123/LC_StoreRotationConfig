@@ -1,8 +1,8 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
+using StoreRotationConfig.Patches;
 using System;
-using System.Reflection;
 
 namespace StoreRotationConfig
 {
@@ -11,10 +11,16 @@ namespace StoreRotationConfig
     /// </summary>
     [BepInPlugin(GUID, PLUGIN_NAME, VERSION)]
     [BepInDependency("com.sigurd.csync", "5.0.1")]
+    [BepInDependency("TerminalFormatter", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-        internal const string GUID = "pacoito.StoreRotationConfig", PLUGIN_NAME = "StoreRotationConfig", VERSION = "2.3.1";
+        internal const string GUID = "pacoito.StoreRotationConfig", PLUGIN_NAME = "StoreRotationConfig", VERSION = "2.3.2";
         internal static ManualLogSource StaticLogger { get; private set; }
+
+        /// <summary>
+        ///     Harmony instance for patching.
+        /// </summary>
+        internal static Harmony Harmony { get; private set; }
 
         /// <summary>
         ///     Plugin configuration instance.
@@ -47,8 +53,18 @@ namespace StoreRotationConfig
 
             try
             {
+                // Initialize 'Config' and 'Harmony' instances.
                 Settings = new(Config);
-                _ = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), $"{GUID}");
+                Harmony = new(GUID);
+                //
+
+                // Apply all patches, except for compatibility ones.
+                Harmony.PatchAll(typeof(RotateShipDecorSelectionPatch));
+                Harmony.PatchAll(typeof(SyncShipUnlockablesPatch));
+                Harmony.PatchAll(typeof(TerminalItemSalesPatches));
+                Harmony.PatchAll(typeof(TerminalScrollMousePatch));
+                Harmony.PatchAll(typeof(UnlockShipObjectPatches));
+                // ...
 
                 StaticLogger.LogInfo($"{PLUGIN_NAME} loaded!");
             }
