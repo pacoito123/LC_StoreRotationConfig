@@ -107,7 +107,7 @@ namespace StoreRotationConfig.Patches
             // Clear previous store rotation.
             shipDecorSelection.Clear();
 
-            // Use 'maxItems' for 'minItems' if the latter is greater than the former.
+            // Use 'minItems' for 'maxItems', if the former is greater than the latter.
             if (minItems > maxItems)
             {
                 Plugin.StaticLogger.LogWarning("Value for 'minItems' is larger than 'maxItems', using it instead...");

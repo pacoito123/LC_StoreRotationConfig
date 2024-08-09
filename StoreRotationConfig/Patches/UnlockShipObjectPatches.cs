@@ -51,29 +51,45 @@ namespace StoreRotationConfig.Patches
                 return;
             }
 
-            // Obtain item from list of purchasable items.
+            // Obtain item from the list of purchasable items.
             UnlockableItem item = StartOfRound.Instance.unlockablesList.unlockables[unlockableID];
 
-            // Return if item has already been purchased (likely a redundant check, but done just in case).
-            if (item.hasBeenUnlockedByPlayer || item.alreadyUnlocked)
+            // Return if item is not present in the 'UnlockablesList.unlockables' list, OR its shop node does not exist.
+            if (item == null || item.shopSelectionNode == null)
             {
-                Plugin.StaticLogger.LogWarning($"Unlockable #{unlockableID} has already been purchased.");
+                Plugin.StaticLogger.LogWarning($"Unlockable #{unlockableID} could not be found.");
 
                 return;
             }
 
-            // Remove item from 'RotateShipDecorSelectionPatch.AllItems' list.
+            // Return if item has already been purchased (likely a redundant check, but done just in case).
+            if (item.hasBeenUnlockedByPlayer || item.alreadyUnlocked)
+            {
+                Plugin.StaticLogger.LogWarning($"Item '{item.shopSelectionNode.creatureName}' has already been purchased.");
+
+                return;
+            }
+
+            Plugin.StaticLogger.LogDebug($"Removing item '{item.shopSelectionNode.creatureName}' from the store rotation...");
+
+            // Attempt to remove item from the 'RotateShipDecorSelectionPatch.AllItems' list.
             if (RotateShipDecorSelectionPatch.AllItems.Remove(item))
             {
-                // Remove item from 'Terminal.ShipDecorSelection' list.
+                // Attempt to remove item from the 'Terminal.ShipDecorSelection' list.
                 if (!Plugin.Terminal.ShipDecorSelection.Remove(item.shopSelectionNode))
                 {
-                    Plugin.StaticLogger.LogWarning($"Unlockable #{unlockableID} was not found in the store rotation.");
+                    Plugin.StaticLogger.LogWarning($"Item '{item.shopSelectionNode.creatureName}' was not found in the store rotation.");
                 }
             }
             else
             {
-                Plugin.StaticLogger.LogWarning($"Unlockable #{unlockableID} was not found in the list of purchasable items.");
+                Plugin.StaticLogger.LogWarning($"Item '{item.shopSelectionNode.creatureName}' was not found in the list of purchasable items.");
+            }
+
+            // Attempt to remove item from the 'RotateShipDecorSelectionPatch.PermanentItems' list.
+            if (RotateShipDecorSelectionPatch.PermanentItems != null && RotateShipDecorSelectionPatch.PermanentItems.Remove(item))
+            {
+                Plugin.StaticLogger.LogDebug($"Item '{item.shopSelectionNode.creatureName}' was removed from the list of permanent items.");
             }
         }
     }

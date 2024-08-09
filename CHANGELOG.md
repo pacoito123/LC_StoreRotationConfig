@@ -1,3 +1,14 @@
+### [2.3.3]
+
+Miscellaneous fixes for various issues.
+- Purchasing items now immediately removes from the permanent item list (**NOT** the config file's `itemWhitelist`) when `stockPurchased` is set to disabled.
+- Made `saleChance` determine sales likelihood more accurately now.
+	- My original goal was to recreate how the vanilla game handles sales, only parameterized to allow for configuration; however, due to integer rounding, a sales chance of e.g. `85%` and above could end up being exactly the same as `100%`, depending on the `maxSaleItems` setting.
+- Fixed `Terminal.TextPostProcess()` transpiler occasionally replacing other items' displayed prices when appending a sale tag to a rotating item.
+	- Also simplified it significantly by doing what was used for the [TerminalFormatter](https://thunderstore.io/c/lethal-company/p/mrov/TerminalFormatter) compatibility transpiler.
+- Made `minDiscount` be used for `maxDiscount` when `minDiscount` is greater than `maxDiscount`, just like the other range settings.
+- Added a couple more null checks and debug messages.
+
 ### [2.3.2]
 
 Compatibility with TerminalFormatter's modified store, among other things.
@@ -72,8 +83,8 @@ Update to 'CSync' v5, more configuration for terminal scrolling.
 
 ### [2.0.1]
 
-Fixes for 'showPurchased' and 'relativeScroll' settings.
-- Purchased items should now properly sync between clients when `showPurchased` is set to disabled.
+Fixes for 'stockPurchased' and 'relativeScroll' settings.
+- Purchased items should now properly sync between clients when `stockPurchased` is set to disabled.
 	- `Terminal.RotateShipDecorSelection()` now waits until after `StartOfRound.SyncShipUnlockablesClientRpc()` is executed when first joining a lobby.
 	- Newly-purchased items should now be properly removed from store rotations for every client, not just the host.
 - `relativeScroll` scroll amount should no longer apply an additional time for each player in the lobby.
@@ -90,7 +101,7 @@ Update to 'CSync' v4; support for v3 relegated to previous release.
 ### [1.3.0]
 
 Added setting to configure whether already-purchased items should show up in the store rotation.
-- Added `showPurchased` server-side setting (on by default).
+- Added `stockPurchased` server-side setting (on by default).
 	- Determines whether or not to include already-purchased items in both the current store rotation and any future ones.
 	- Also immediately removes them from the current store rotation, if disabled.
 - Next release will target `CSync v4`, this specific version can be downgraded to if `CSync v3` compatibility is required.

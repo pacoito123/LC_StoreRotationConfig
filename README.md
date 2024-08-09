@@ -35,7 +35,7 @@ By default, the number of available items in the store is increased from **4-5**
 
 Alternatively, the `showAll` setting (off by default) can be enabled to simply add every purchasable item to the store rotation. Partly intended for fixing name conflict issues when buying stuff at the terminal, but there should be no problems using it during a regular run.
 
-Disabling the `showPurchased` setting (on by default) will prevent already-purchased items from showing up in future store rotations, and will also immediately remove newly-purchased items from the current rotation.
+Disabling the `stockPurchased` setting (on by default) will prevent already-purchased items from showing up in future store rotations, and will also immediately remove newly-purchased items from the current rotation.
 
 To guarantee an item showing up in the store rotation, its name can be added to the comma-separated `itemWhitelist` setting, which adds the specified items to every store rotation separate from the range of items defined by the `minItems` and `maxItems` settings. Likewise, to prevent items from ever showing up in the store rotation, its name can be added to `itemBlacklist`.
 

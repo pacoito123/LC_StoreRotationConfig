@@ -59,7 +59,7 @@ namespace StoreRotationConfig.Compatibility
             .SetInstructionAndAdvance(Transpilers.EmitDelegate((TerminalNode item) =>
                 {
                     // Return full cost if 'salesChance' is disabled OR the 'RotationSales' dictionary doesn't contain a discount for the item about to be displayed.
-                    if (Plugin.Settings.SALE_CHANCE == 0 || (RotationSales != null && !RotationSales.ContainsKey(item)))
+                    if (Plugin.Settings.SALE_CHANCE == 0 || RotationSales == null || !RotationSales.ContainsKey(item))
                     {
                         return $"{item.itemCost}";
                     }

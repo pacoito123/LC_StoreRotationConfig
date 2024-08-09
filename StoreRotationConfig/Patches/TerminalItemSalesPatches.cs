@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
-using System.Text;
 using HarmonyLib;
 using Unity.Netcode;
 
@@ -38,16 +37,22 @@ namespace StoreRotationConfig.Patches
             // Initialize 'Random' instance using the same seed as vanilla sales.
             Random random = new(StartOfRound.Instance.randomMapSeed + 90);
 
-            // Obtain values from the config file.
-            float saleChance = 100f / Plugin.Settings.SALE_CHANCE;
+            // Return if no items are on sale for this rotation.
+            if (random.Next(0, 100) > Plugin.Settings.SALE_CHANCE - 1)
+            {
+                Plugin.StaticLogger.LogInfo("No items on sale for this rotation...");
 
+                return;
+            }
+
+            // Obtain values from the config file.
             int minSaleItems = Math.Abs(Plugin.Settings.MIN_SALE_ITEMS),
                 maxSaleItems = Math.Abs(Plugin.Settings.MAX_SALE_ITEMS);
             int minDiscount = Plugin.Settings.MIN_DISCOUNT,
                 maxDiscount = Plugin.Settings.MAX_DISCOUNT;
             // ...
 
-            // Use 'maxItems' for 'minItems' if the latter is greater than the former.
+            // Use 'minSaleItems' for 'maxSaleItems', if the former is greater than the latter.
             if (minSaleItems > maxSaleItems)
             {
                 Plugin.StaticLogger.LogWarning("Value for 'minSaleItems' is larger than 'maxSaleItems', using it instead...");
@@ -55,8 +60,16 @@ namespace StoreRotationConfig.Patches
                 maxSaleItems = minSaleItems;
             }
 
-            // Obtain number of items with sales for this rotation, using parameters from the config file.
-            int itemsOnSale = random.Next(maxSaleItems - (int)(maxSaleItems * saleChance) + 1, maxSaleItems + 1);
+            // Use 'minSaleItems' for 'maxDiscount', if the former is greater than the latter.
+            if (minDiscount > maxDiscount)
+            {
+                Plugin.StaticLogger.LogWarning("Value for 'minDiscount' is larger than 'maxDiscount', using it instead...");
+
+                maxDiscount = minDiscount;
+            }
+
+            // Obtain number of items with sales for this rotation.
+            int itemsOnSale = random.Next(minSaleItems, maxSaleItems + 1);
 
             // Return if no items are on sale for this rotation.
             if (itemsOnSale <= 0)
@@ -149,14 +162,13 @@ namespace StoreRotationConfig.Patches
 
         /// <summary>
         ///     Displays rotating item discounts and their modified prices in the store page.
-        ///     Dynamic operands maintain compatibility between game versions.
         /// </summary>
         ///     ... (Terminal:344)
         ///     for (int m = 0; m &lt; this.ShipDecorSelection.Count; m++)
         ///     {
-        ///         stringBuilder*.Append(string.Format("\n{0}  //  ${1}", this.ShipDecorSelection[m].creatureName, this.ShipDecorSelection[m].itemCost));
-        ///         
-        ///         -> call(this.ShipDecorSelection, stringBuilder*, m);
+        ///         stringBuilder5.Append(string.Format("\n{0}  //  ${1}", this.ShipDecorSelection[m].creatureName,
+        ///             // this.ShipDecorSelection[m].itemCost));
+        ///             -> call(this.ShipDecorSelection)));
         ///     }
         /// <param name="instructions">Iterator with original IL instructions.</param>
         /// <returns>Iterator with modified IL instructions.</returns>
@@ -164,42 +176,27 @@ namespace StoreRotationConfig.Patches
         [HarmonyTranspiler]
         private static IEnumerable<CodeInstruction> TextPostProcessTranspiler(IEnumerable<CodeInstruction> instructions)
         {
-            CodeMatcher matcher = new CodeMatcher(instructions).MatchForward(false,
+            return new CodeMatcher(instructions).MatchForward(false,
                 new(OpCodes.Ldstr, "\n{0}  //  ${1}"),
                 new(OpCodes.Ldarg_0),
-                new(OpCodes.Ldfld, AccessTools.Field(typeof(Terminal), nameof(Terminal.ShipDecorSelection))));
-
-            // Obtain operand for the StringBuilder instance using cloned instructions.
-            object sbOperand = matcher.Clone().MatchBack(false, new CodeMatch(OpCodes.Newobj)).Advance(1).Operand;
-
-            // Obtain operand for the loop index using cloned instructions.
-            object indexOperand = matcher.Clone().Advance(3).Operand;
-
-            return matcher.MatchForward(false, new CodeMatch(OpCodes.Pop))
-                .Advance(1)
-                .InsertAndAdvance(
-                    new(OpCodes.Ldarg_0),
-                    new(OpCodes.Ldfld, AccessTools.Field(typeof(Terminal), nameof(Terminal.ShipDecorSelection))),
-                    new(OpCodes.Ldloc_S, sbOperand),
-                    new(OpCodes.Ldloc_S, indexOperand))
-                .Insert(Transpilers.EmitDelegate((List<TerminalNode> storeRotation, StringBuilder sb, int index) =>
+                new(OpCodes.Ldfld, AccessTools.Field(typeof(Terminal), nameof(Terminal.ShipDecorSelection))))
+            .MatchForward(false,
+                new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(TerminalNode), nameof(TerminalNode.itemCost))))
+            .SetInstructionAndAdvance(Transpilers.EmitDelegate((TerminalNode item) =>
+                {
+                    // Return if 'salesChance' is disabled OR the 'RotationSales' dictionary doesn't contain a discount for the item about to be displayed.
+                    if (Plugin.Settings.SALE_CHANCE == 0 || RotationSales == null || !RotationSales.ContainsKey(item))
                     {
-                        // Obtain item about to be displayed in the store page.
-                        TerminalNode item = storeRotation[index];
-
-                        // Return if 'salesChance' is disabled OR the 'RotationSales' dictionary doesn't contain a discount for the item about to be displayed.
-                        if (Plugin.Settings.SALE_CHANCE == 0 || (RotationSales != null && !RotationSales.ContainsKey(item)))
-                        {
-                            return;
-                        }
-
-                        Plugin.StaticLogger.LogDebug($"Appending {RotationSales[item]} to {item.creatureName}...");
-
-                        // Replace old price with the discounted price, and append sale tag to the displayed text.
-                        _ = sb.Replace(item.itemCost.ToString(), (item.itemCost - (int)(item.itemCost * (RotationSales[item] / 100f))).ToString())
-                            .Append($"   ({RotationSales[item]}% OFF!)");
+                        return $"{item.itemCost}";
                     }
-                )).InstructionEnumeration();
+
+                    Plugin.StaticLogger.LogDebug($"Appending {RotationSales[item]} to {item.creatureName}...");
+
+                    // Append discounted price with sale tag to the displayed text.
+                    return $"{item.itemCost - (int)(item.itemCost * (RotationSales[item] / 100f))}   ({RotationSales[item]}% OFF!)";
+                }))
+            .SetOperandAndAdvance(typeof(string))
+            .InstructionEnumeration();
         }
     }
 }
