@@ -1,7 +1,8 @@
+using HarmonyLib;
+using StoreRotationConfig.Api;
 using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
-using HarmonyLib;
 using Unity.Netcode;
 
 namespace StoreRotationConfig.Patches
@@ -12,9 +13,6 @@ namespace StoreRotationConfig.Patches
     [HarmonyPatch(typeof(Terminal))]
     internal class TerminalItemSalesPatches
     {
-        // Cached dictionary of discount values, using its respective item node as key.
-        public static Dictionary<TerminalNode, int> RotationSales { get; private set; }
-
         [HarmonyPatch(nameof(Terminal.RotateShipDecorSelection))]
         [HarmonyPostfix]
         private static void SetRotationSales(Terminal __instance)
@@ -80,7 +78,7 @@ namespace StoreRotationConfig.Patches
             }
 
             // Initialize 'RotationSales' dictionary with its capacity set to however many items are to be on sale.
-            RotationSales = new(itemsOnSale);
+            RotationSalesAPI.ResetSales(itemsOnSale);
 
             // Clone the 'Terminal.ShipDecorSelection' list for item selection.
             List<TerminalNode> storeRotation = new(__instance.ShipDecorSelection);
@@ -100,12 +98,12 @@ namespace StoreRotationConfig.Patches
                 // Obtain random index of the item to apply the discount to.
                 int index = random.Next(0, storeRotation.Count);
 
-                // Add item to the 'RotationSales' dictionary along with its discount, and remove it from the 'storeRotation' cloned list.
-                RotationSales[storeRotation[index]] = discount;
+                // Register item discount and remove it from the 'storeRotation' cloned list.
+                _ = RotationSalesAPI.AddItemDiscount(storeRotation[index], discount);
                 storeRotation.RemoveAt(index);
             }
 
-            Plugin.StaticLogger.LogInfo($"{RotationSales.Count} item(s) on sale!");
+            Plugin.StaticLogger.LogInfo($"{RotationSalesAPI.CountSales()} items on sale!");
         }
 
         /// <summary>
@@ -146,15 +144,18 @@ namespace StoreRotationConfig.Patches
                     TerminalNode item = StartOfRound.Instance.unlockablesList.unlockables[node.shipUnlockableID]?.shopSelectionNode;
 
                     // Return if 'salesChance' is disabled OR the 'RotationSales' dictionary doesn't contain a discount for the currently selected item.
-                    if (Plugin.Settings.SALE_CHANCE == 0 || !RotationSales.ContainsKey(item))
+                    if (Plugin.Settings.SALE_CHANCE == 0 || !RotationSalesAPI.IsOnSale(item))
                     {
                         return totalCostOfItems;
                     }
 
-                    Plugin.StaticLogger.LogDebug($"Applying discount of {RotationSales[item]} to {item.creatureName}...");
+                    // Obtain discounted item price and discount value.
+                    int price = RotationSalesAPI.GetDiscountedPrice(item, out int discount);
+
+                    Plugin.StaticLogger.LogDebug($"Applying discount of {discount}% to '{item.creatureName}'...");
 
                     // Apply discount to the total cost of the purchase.
-                    return item.itemCost - (int)(item.itemCost * (RotationSales[item] / 100f));
+                    return price;
                 }))
             .Insert(new CodeInstruction(OpCodes.Stfld, AccessTools.Field(typeof(Terminal), "totalCostOfItems")))
             .InstructionEnumeration();
@@ -184,16 +185,16 @@ namespace StoreRotationConfig.Patches
                 new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(TerminalNode), nameof(TerminalNode.itemCost))))
             .SetInstructionAndAdvance(Transpilers.EmitDelegate((TerminalNode item) =>
                 {
-                    // Return if 'salesChance' is disabled OR the 'RotationSales' dictionary doesn't contain a discount for the item about to be displayed.
-                    if (Plugin.Settings.SALE_CHANCE == 0 || RotationSales == null || !RotationSales.ContainsKey(item))
+                    // Return string containing full cost if 'salesChance' is disabled OR the item about to be displayed isn't currently on sale.
+                    if (Plugin.Settings.SALE_CHANCE == 0 || !RotationSalesAPI.IsOnSale(item, out int discount))
                     {
                         return $"{item.itemCost}";
                     }
 
-                    Plugin.StaticLogger.LogDebug($"Appending {RotationSales[item]} to {item.creatureName}...");
+                    Plugin.StaticLogger.LogDebug($"Appending sale tag of '{discount}%' to {item.creatureName}...");
 
-                    // Append discounted price with sale tag to the displayed text.
-                    return $"{item.itemCost - (int)(item.itemCost * (RotationSales[item] / 100f))}   ({RotationSales[item]}% OFF!)";
+                    // Return string containing the discounted price and discount amount to display in the store page. 
+                    return RotationSalesAPI.GetTerminalString(item);
                 }))
             .SetOperandAndAdvance(typeof(string))
             .InstructionEnumeration();

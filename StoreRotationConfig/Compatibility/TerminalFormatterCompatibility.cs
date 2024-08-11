@@ -1,9 +1,9 @@
 using HarmonyLib;
+using StoreRotationConfig.Api;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using TerminalFormatter.Nodes;
-using static StoreRotationConfig.Patches.TerminalItemSalesPatches;
 
 namespace StoreRotationConfig.Compatibility
 {
@@ -58,19 +58,16 @@ namespace StoreRotationConfig.Compatibility
                 new(OpCodes.Box, operand: typeof(int)))
             .SetInstructionAndAdvance(Transpilers.EmitDelegate((TerminalNode item) =>
                 {
-                    // Return full cost if 'salesChance' is disabled OR the 'RotationSales' dictionary doesn't contain a discount for the item about to be displayed.
-                    if (Plugin.Settings.SALE_CHANCE == 0 || RotationSales == null || !RotationSales.ContainsKey(item))
+                    // Return string containing full cost if 'salesChance' is disabled OR the item about to be displayed isn't currently on sale.
+                    if (Plugin.Settings.SALE_CHANCE == 0 || !RotationSalesAPI.IsOnSale(item, out int discount))
                     {
                         return $"{item.itemCost}";
                     }
 
-                    Plugin.StaticLogger.LogDebug($"Appending {RotationSales[item]} to {item.creatureName}...");
+                    Plugin.StaticLogger.LogDebug($"Appending sale tag of '{discount}%' to {item.creatureName}...");
 
-                    // Obtain discounted item price.
-                    int discountedPrice = item.itemCost - (int)(item.itemCost * (RotationSales[item] / 100f));
-
-                    // Return string containing the discounted price and discount amount to display in the store page. 
-                    return $"{discountedPrice} ({RotationSales[item]}% OFF!)";
+                    // Return string containing the discounted price and discount amount to display in the store page.
+                    return RotationSalesAPI.GetTerminalString(item);
                 }))
             .SetOperandAndAdvance(typeof(string))
             .InstructionEnumeration();

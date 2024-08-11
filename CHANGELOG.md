@@ -1,3 +1,10 @@
+### [2.4.0]
+
+Basic API added for rotation sales.
+- Created `RotationSalesAPI` class, which contains several helper methods for interacting with the rotation sales system.
+	- Meant for other mods to use to check if an item is on sale, obtain its discount value and discounted price, add or remove discounts for specific items, among other things.
+- Modified `TerminalItemSalesPatches` and `TerminalFormatterCompatibility` to use the new API.
+
 ### [2.3.3]
 
 Miscellaneous fixes for various issues.
