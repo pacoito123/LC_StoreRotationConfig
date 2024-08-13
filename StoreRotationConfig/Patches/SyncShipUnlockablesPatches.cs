@@ -50,7 +50,8 @@ namespace StoreRotationConfig.Patches
             // ...
 
             // Handle 'TerminalFormatter' compatibility here since I can't seem to get it to load before my mod, despite the soft dependency.
-            if (TerminalFormatterCompatibility.Enabled && !TerminalFormatterCompatibility.Patched)
+            if (Plugin.Settings != null && Plugin.Settings.TERMINAL_FORMATTER_COMPAT.Value && TerminalFormatterCompatibility.Enabled
+                && !TerminalFormatterCompatibility.Patched)
             {
                 Plugin.StaticLogger?.LogInfo($"Patching 'TerminalFormatter'...");
 

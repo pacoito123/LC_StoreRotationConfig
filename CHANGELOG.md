@@ -6,6 +6,8 @@ Basic API added for rotation sales, enabled 'Nullable' in the project file.
 - Modified `TerminalItemSalesPatches` and `TerminalFormatterCompatibility` to use the new API.
 - Enabled `Nullable` value types in the `.csproj` file so the compiler can yell at me if I forget a null check somewhere.
 	- Should fix any current and (hopefully) future issues regarding null types (e.g. issue [#3](https://github.com/pacoito123/LC_StoreRotationConfig/issues/3)).
+- Added `terminalFormatterCompat` setting to toggle compatibility with [TerminalFormatter](https://thunderstore.io/c/lethal-company/p/mrov/TerminalFormatter).
+	- This setting will be removed soon-ish, once compatibility is handled from their end.
 
 ### [2.3.3]
 
