@@ -28,7 +28,7 @@ namespace StoreRotationConfig.Patches
         private static void ScrollMouse_performed(Scrollbar scrollbar, float scrollDirection)
         {
             // Perform vanilla scroll if the 'relativeScroll' setting is disabled.
-            if (!Plugin.Settings.RELATIVE_SCROLL.Value)
+            if (Plugin.Terminal == null || Plugin.Settings == null || Plugin.Settings.RELATIVE_SCROLL.Value)
             {
                 // Increment scrollbar value by vanilla scroll amount (a third of the page).
                 scrollbar.value += scrollDirection / 3f;
@@ -46,7 +46,7 @@ namespace StoreRotationConfig.Patches
                 int numLines = CurrentText.Count(c => c.Equals('\n')) + 1;
                 scrollAmount = Plugin.Settings.LINES_TO_SCROLL.Value / (float)numLines;
 
-                Plugin.StaticLogger.LogDebug($"Setting terminal scroll amount to '{scrollAmount}'!");
+                Plugin.StaticLogger?.LogDebug($"Setting terminal scroll amount to '{scrollAmount}'!");
             }
 
             // Increment terminal scrollbar value by the relative scroll amount, in the direction given by the mouse wheel input.

@@ -59,12 +59,12 @@ namespace StoreRotationConfig.Compatibility
             .SetInstructionAndAdvance(Transpilers.EmitDelegate((TerminalNode item) =>
                 {
                     // Return string containing full cost if 'salesChance' is disabled OR the item about to be displayed isn't currently on sale.
-                    if (Plugin.Settings.SALE_CHANCE == 0 || !RotationSalesAPI.IsOnSale(item, out int discount))
+                    if (Plugin.Settings == null || Plugin.Settings.SALE_CHANCE == 0 || !RotationSalesAPI.IsOnSale(item, out int discount))
                     {
                         return $"{item.itemCost}";
                     }
 
-                    Plugin.StaticLogger.LogDebug($"Appending sale tag of '{discount}%' to {item.creatureName}...");
+                    Plugin.StaticLogger?.LogDebug($"Appending sale tag of '{discount}%' to {item.creatureName}...");
 
                     // Return string containing the discounted price and discount amount to display in the store page.
                     return RotationSalesAPI.GetTerminalString(item);

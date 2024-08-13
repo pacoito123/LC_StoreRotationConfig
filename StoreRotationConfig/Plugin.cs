@@ -15,23 +15,22 @@ namespace StoreRotationConfig
     public class Plugin : BaseUnityPlugin
     {
         internal const string GUID = "pacoito.StoreRotationConfig", PLUGIN_NAME = "StoreRotationConfig", VERSION = "2.4.0";
-        internal static ManualLogSource StaticLogger { get; private set; }
+        internal static ManualLogSource? StaticLogger { get; private set; }
 
         /// <summary>
         ///     Harmony instance for patching.
         /// </summary>
-        internal static Harmony Harmony { get; private set; }
+        internal static Harmony? Harmony { get; private set; }
 
         /// <summary>
         ///     Plugin configuration instance.
         /// </summary>
-        public static Config Settings { get; private set; }
+        public static Config? Settings { get; private set; }
 
         /// <summary>
         ///     Cached terminal instance.
         /// </summary>
-        /// <remarks>An error will be thrown if the Terminal cannot be found or is missing.</remarks>
-        public static Terminal Terminal
+        public static Terminal? Terminal
         {
             get
             {
@@ -43,9 +42,17 @@ namespace StoreRotationConfig
 
                 return _terminal;
             }
-            private set => _terminal = value ?? throw new ArgumentNullException("_terminal", "Terminal GameObject not found...");
+            private set
+            {
+                if (value == null)
+                {
+                    StaticLogger?.LogError("Could not find 'Terminal' instance...");
+                }
+
+                _terminal = value;
+            }
         }
-        private static Terminal _terminal;
+        private static Terminal? _terminal;
 
         private void Awake()
         {
@@ -66,7 +73,7 @@ namespace StoreRotationConfig
                 Harmony.PatchAll(typeof(UnlockShipObjectPatches));
                 // ...
 
-                StaticLogger.LogInfo($"{PLUGIN_NAME} loaded!");
+                StaticLogger.LogInfo($"'{PLUGIN_NAME}' loaded!");
             }
             catch (Exception e)
             {

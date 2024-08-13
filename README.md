@@ -41,7 +41,7 @@ To guarantee an item showing up in the store rotation, its name can be added to 
 
 ### Rotation sales
 
-As of `v2.3.0`, items in the rotating shop can be configured to occasionally go on sale. By default, there's a roughly **33% chance** for **1-5** items to go on sale with a discount ranging from **10-50%** and rounded to the nearest ten, but everything is configurable.
+As of `v2.3.0`, items in the rotating shop can be configured to occasionally go on sale. By default, there's a **33% chance** for **1-5** items to go on sale with a discount ranging from **10-50%** and rounded to the nearest ten, but everything is configurable.
 
 The `saleChance` setting controls the percentage chance for rotating items to go on sale, with the sales system disabling itself completely if set to **0**. The number of items that can be on sale at a time can be configured by the `minSaleItems` and `maxSaleItems` settings, and the amount that can be discounted can be configured by the `minDiscount` and `maxDiscount`. Whether or not discounts should be rounded to the nearest ten, like the regular store, is determined by the `roundToNearestTen` setting.
 

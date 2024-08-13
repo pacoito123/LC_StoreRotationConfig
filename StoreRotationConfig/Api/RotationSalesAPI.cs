@@ -11,14 +11,14 @@ namespace StoreRotationConfig.Api
         /// <summary>
         ///     Cached dictionary of discount values to apply, using the respective items' nodes as keys.
         /// </summary>
-        private static Dictionary<TerminalNode, int> RotationSales { get; set; }
+        private static Dictionary<TerminalNode, int>? RotationSales { get; set; }
 
         /// <summary>
         ///     Check if a rotating store item has a discount assigned.
         /// </summary>
         /// <param name="item">'TerminalNode' instance of the store item to check.</param>
         /// <returns>Whether or not the item is on sale.</returns>
-        public static bool IsOnSale(TerminalNode item)
+        public static bool IsOnSale(TerminalNode? item)
         {
             return IsOnSale(item, out _);
         }
@@ -29,11 +29,11 @@ namespace StoreRotationConfig.Api
         /// <param name="item">'TerminalNode' instance of the store item to check.</param>
         /// <param name="discount">Out value of the discount to apply, or '0' if there isn't one.</param>
         /// <returns>Whether or not the item is on sale.</returns>
-        public static bool IsOnSale(TerminalNode item, out int discount)
+        public static bool IsOnSale(TerminalNode? item, out int discount)
         {
             discount = 0;
 
-            return RotationSales?.TryGetValue(item, out discount) ?? false;
+            return item != null && RotationSales != null && RotationSales.TryGetValue(item, out discount);
         }
 
         /// <summary>
@@ -41,9 +41,11 @@ namespace StoreRotationConfig.Api
         /// </summary>
         /// <param name="item">'TerminalNode' instance of the discounted store item.</param>
         /// <returns>The discount value of the rotating item, or '0' if there isn't one.</returns>
-        public static int GetDiscount(TerminalNode item)
+        public static int GetDiscount(TerminalNode? item)
         {
-            return IsOnSale(item, out int discount) ? discount : 0;
+            _ = IsOnSale(item, out int discount);
+
+            return discount;
         }
 
         /// <summary>
@@ -51,7 +53,7 @@ namespace StoreRotationConfig.Api
         /// </summary>
         /// <param name="item">'TerminalNode' instance of the discounted store item.</param>
         /// <returns>The price of the rotating item after its discount is applied, or its full cost if the item is not on sale.</returns>
-        public static int GetDiscountedPrice(TerminalNode item)
+        public static int GetDiscountedPrice(TerminalNode? item)
         {
             return GetDiscountedPrice(item, out _);
         }
@@ -62,9 +64,11 @@ namespace StoreRotationConfig.Api
         /// <param name="item">'TerminalNode' instance of the discounted store item.</param>
         /// <param name="discount">Out value of the discount to apply, or '0' if there isn't one.</param>
         /// <returns>The price of the rotating item after its discount is applied, or its full cost if the item is not on sale.</returns>
-        public static int GetDiscountedPrice(TerminalNode item, out int discount)
+        public static int GetDiscountedPrice(TerminalNode? item, out int discount)
         {
-            return item.itemCost - (IsOnSale(item, out discount) ? (int)(item.itemCost * (discount / 100f)) : 0);
+            discount = 0;
+
+            return item != null ? (IsOnSale(item, out discount) ? (item.itemCost - (int)(item.itemCost * (discount / 100f))) : item.itemCost) : 0;
         }
 
         /// <summary>
@@ -72,7 +76,7 @@ namespace StoreRotationConfig.Api
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public static string GetTerminalString(TerminalNode item)
+        public static string GetTerminalString(TerminalNode? item)
         {
             return $"{GetDiscountedPrice(item, out int discount)}" + ((discount > 0) ? $"   ({discount}% OFF!)" : "");
         }
@@ -83,9 +87,9 @@ namespace StoreRotationConfig.Api
         /// <param name="item">'TerminalNode' instance of the store item to add a discount to.</param>
         /// <param name="discount">The discount to apply, within the range '(0, 100]'.</param>
         /// <returns>Whether or not the discount was successfully added to the 'RotationSales' dictionary.</returns>
-        public static bool AddItemDiscount(TerminalNode item, int discount)
+        public static bool AddItemDiscount(TerminalNode? item, int discount)
         {
-            return RotationSales?.TryAdd(item, Math.Clamp(discount, 1, 100)) ?? false;
+            return item != null && RotationSales != null && RotationSales.TryAdd(item, Math.Clamp(discount, 1, 100));
         }
 
         /// <summary>
@@ -93,7 +97,7 @@ namespace StoreRotationConfig.Api
         /// </summary>
         /// <param name="item">'TerminalNode' instance of the discounted store item.</param>
         /// <returns>Whether or not the discount was successfully removed.</returns>
-        public static bool RemoveItemDiscount(TerminalNode item)
+        public static bool RemoveItemDiscount(TerminalNode? item)
         {
             return RemoveItemDiscount(item, out _);
         }
@@ -104,11 +108,11 @@ namespace StoreRotationConfig.Api
         /// <param name="item">'TerminalNode' instance of the discounted store item.</param>
         /// <param name="discount">Out value of the discount removed, or '0' if there wasn't one.</param>
         /// <returns>Whether or not the discount was successfully removed.</returns>
-        public static bool RemoveItemDiscount(TerminalNode item, out int discount)
+        public static bool RemoveItemDiscount(TerminalNode? item, out int discount)
         {
             discount = 0;
 
-            return RotationSales?.Remove(item, out discount) ?? false;
+            return item != null && RotationSales != null && RotationSales.Remove(item, out discount);
         }
 
         /// <summary>

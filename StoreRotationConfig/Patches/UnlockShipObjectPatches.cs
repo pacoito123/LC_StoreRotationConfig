@@ -13,14 +13,14 @@ namespace StoreRotationConfig.Patches
         [HarmonyPrefix]
         private static void UnlockShipObjectPre(int unlockableID)
         {
-            // Return if 'stockPurchased' setting is enabled, or if the local game instance is not hosting the server.
-            if (Plugin.Settings.STOCK_PURCHASED.Value || !(NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer))
+            // Return if the local game instance is not hosting the server, or if 'stockPurchased' setting is enabled.
+            if ((!NetworkManager.Singleton.IsHost && !NetworkManager.Singleton.IsServer) || (Plugin.Settings?.STOCK_PURCHASED.Value).GetValueOrDefault(true))
             {
                 return;
             }
 
             // Attempt to remove item from the store rotation.
-            Plugin.StaticLogger.LogDebug($"Attempting to remove unlockable #{unlockableID} on server...");
+            Plugin.StaticLogger?.LogDebug($"Attempting to remove unlockable #{unlockableID} on server...");
             RemoveItemFromRotation(unlockableID);
         }
 
@@ -28,14 +28,14 @@ namespace StoreRotationConfig.Patches
         [HarmonyPrefix]
         private static void BuyShipUnlockableClientPre(int newGroupCreditsAmount, int unlockableID = -1)
         {
-            // Return if 'stockPurchased' setting is true, or if local game instance is hosting the server.
-            if (Plugin.Settings.STOCK_PURCHASED.Value || NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer)
+            // Return if local game instance is hosting the server, or if 'stockPurchased' setting is enabled.
+            if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer || (Plugin.Settings?.STOCK_PURCHASED.Value).GetValueOrDefault(true))
             {
                 return;
             }
 
             // Attempt to remove item from the store rotation.
-            Plugin.StaticLogger.LogDebug($"Attempting to remove unlockable #{unlockableID} on client...");
+            Plugin.StaticLogger?.LogDebug($"Attempting to remove unlockable #{unlockableID} on client...");
             RemoveItemFromRotation(unlockableID);
         }
 
@@ -57,7 +57,7 @@ namespace StoreRotationConfig.Patches
             // Return if item is not present in the 'UnlockablesList.unlockables' list, OR its shop node does not exist.
             if (item == null || item.shopSelectionNode == null)
             {
-                Plugin.StaticLogger.LogWarning($"Unlockable #{unlockableID} could not be found.");
+                Plugin.StaticLogger?.LogWarning($"Unlockable #{unlockableID} and/or its terminal node could not be found.");
 
                 return;
             }
@@ -65,31 +65,31 @@ namespace StoreRotationConfig.Patches
             // Return if item has already been purchased (likely a redundant check, but done just in case).
             if (item.hasBeenUnlockedByPlayer || item.alreadyUnlocked)
             {
-                Plugin.StaticLogger.LogWarning($"Item '{item.shopSelectionNode.creatureName}' has already been purchased.");
+                Plugin.StaticLogger?.LogWarning($"Item '{item.shopSelectionNode.creatureName}' has already been purchased.");
 
                 return;
             }
 
-            Plugin.StaticLogger.LogDebug($"Removing item '{item.shopSelectionNode.creatureName}' from the store rotation...");
+            Plugin.StaticLogger?.LogDebug($"Removing item '{item.shopSelectionNode.creatureName}' from the store rotation...");
 
             // Attempt to remove item from the 'RotateShipDecorSelectionPatch.AllItems' list.
-            if (RotateShipDecorSelectionPatch.AllItems.Remove(item))
+            if ((RotateShipDecorSelectionPatch.AllItems?.Remove(item)).GetValueOrDefault())
             {
                 // Attempt to remove item from the 'Terminal.ShipDecorSelection' list.
-                if (!Plugin.Terminal.ShipDecorSelection.Remove(item.shopSelectionNode))
+                if (Plugin.Terminal == null || !Plugin.Terminal.ShipDecorSelection.Remove(item.shopSelectionNode))
                 {
-                    Plugin.StaticLogger.LogWarning($"Item '{item.shopSelectionNode.creatureName}' was not found in the store rotation.");
+                    Plugin.StaticLogger?.LogWarning($"Item '{item.shopSelectionNode.creatureName}' could not be removed from the store rotation.");
                 }
             }
             else
             {
-                Plugin.StaticLogger.LogWarning($"Item '{item.shopSelectionNode.creatureName}' was not found in the list of purchasable items.");
+                Plugin.StaticLogger?.LogWarning($"Item '{item.shopSelectionNode.creatureName}' could not be found in the list of purchasable items.");
             }
 
             // Attempt to remove item from the 'RotateShipDecorSelectionPatch.PermanentItems' list.
-            if (RotateShipDecorSelectionPatch.PermanentItems != null && RotateShipDecorSelectionPatch.PermanentItems.Remove(item))
+            if ((RotateShipDecorSelectionPatch.PermanentItems?.Remove(item)).GetValueOrDefault())
             {
-                Plugin.StaticLogger.LogDebug($"Item '{item.shopSelectionNode.creatureName}' was removed from the list of permanent items.");
+                Plugin.StaticLogger?.LogDebug($"Item '{item.shopSelectionNode.creatureName}' was removed from the list of permanent items.");
             }
         }
     }

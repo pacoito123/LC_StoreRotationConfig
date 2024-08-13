@@ -1,14 +1,16 @@
 ### [2.4.0]
 
-Basic API added for rotation sales.
+Basic API added for rotation sales, enabled 'Nullable' in the project file.
 - Created `RotationSalesAPI` class, which contains several helper methods for interacting with the rotation sales system.
 	- Meant for other mods to use to check if an item is on sale, obtain its discount value and discounted price, add or remove discounts for specific items, among other things.
 - Modified `TerminalItemSalesPatches` and `TerminalFormatterCompatibility` to use the new API.
+- Enabled `Nullable` value types in the `.csproj` file so the compiler can yell at me if I forget a null check somewhere.
+	- Should fix any current and (hopefully) future issues regarding null types (e.g. issue [#3](https://github.com/pacoito123/LC_StoreRotationConfig/issues/3)).
 
 ### [2.3.3]
 
 Miscellaneous fixes for various issues.
-- Purchasing items now immediately removes from the permanent item list (**NOT** the config file's `itemWhitelist`) when `stockPurchased` is set to disabled.
+- Purchasing items now immediately removes from the permanent item list (**NOT** the config file's `itemWhitelist` itself) when `stockPurchased` is set to disabled.
 - Made `saleChance` determine sales likelihood more accurately now.
 	- My original goal was to recreate how the vanilla game handles sales, only parameterized to allow for configuration; however, due to integer rounding, a sales chance of e.g. `85%` and above could end up being exactly the same as `100%`, depending on the `maxSaleItems` setting.
 - Fixed `Terminal.TextPostProcess()` transpiler occasionally replacing other items' displayed prices when appending a sale tag to a rotating item.
