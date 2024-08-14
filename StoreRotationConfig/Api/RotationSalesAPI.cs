@@ -74,8 +74,8 @@ namespace StoreRotationConfig.Api
         /// <summary>
         ///     Obtain a string containing a discounted item's price and its sale tag, or its full cost if the item is not on sale.
         /// </summary>
-        /// <param name="item"></param>
-        /// <returns></returns>
+        /// <param name="item">The item about to be displayed in the terminal store page.</param>
+        /// <returns>A formatted string to display in the terminal store page. </returns>
         public static string GetTerminalString(TerminalNode? item)
         {
             return $"{GetDiscountedPrice(item, out int discount)}" + ((discount > 0) ? $"   ({discount}% OFF!)" : "");
