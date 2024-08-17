@@ -14,7 +14,7 @@ namespace StoreRotationConfig
     [BepInDependency("TerminalFormatter", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-        internal const string GUID = "pacoito.StoreRotationConfig", PLUGIN_NAME = "StoreRotationConfig", VERSION = "2.4.0";
+        internal const string GUID = "pacoito.StoreRotationConfig", PLUGIN_NAME = "StoreRotationConfig", VERSION = "2.4.1";
         internal static ManualLogSource? StaticLogger { get; private set; }
 
         /// <summary>

@@ -1,3 +1,9 @@
+### [2.4.1]
+
+Confirming compatibility with v61, but also a minor fix.
+- Everything seems to be working correctly in `v61`, but I'll keep an eye out if anything breaks in the latest updates.
+- Fixed `relativeScroll` setting being accidentally inverted in the previous release.
+
 ### [2.4.0]
 
 Basic API added for rotation sales, enabled 'Nullable' in the project file.

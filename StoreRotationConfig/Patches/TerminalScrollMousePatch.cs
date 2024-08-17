@@ -28,7 +28,7 @@ namespace StoreRotationConfig.Patches
         private static void ScrollMouse_performed(Scrollbar scrollbar, float scrollDirection)
         {
             // Perform vanilla scroll if the 'relativeScroll' setting is disabled.
-            if (Plugin.Terminal == null || Plugin.Settings == null || Plugin.Settings.RELATIVE_SCROLL.Value)
+            if (Plugin.Terminal == null || Plugin.Settings == null || !Plugin.Settings.RELATIVE_SCROLL.Value)
             {
                 // Increment scrollbar value by vanilla scroll amount (a third of the page).
                 scrollbar.value += scrollDirection / 3f;

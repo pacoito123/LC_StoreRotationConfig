@@ -28,7 +28,7 @@ namespace StoreRotationConfig.Patches
         [HarmonyPrefix]
         private static void BuyShipUnlockableClientPre(int newGroupCreditsAmount, int unlockableID = -1)
         {
-            // Return if local game instance is hosting the server, or if 'stockPurchased' setting is enabled.
+            // Return if local game instance is hosting the server, or if the 'stockPurchased' setting is enabled.
             if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer || (Plugin.Settings?.STOCK_PURCHASED.Value).GetValueOrDefault(true))
             {
                 return;
