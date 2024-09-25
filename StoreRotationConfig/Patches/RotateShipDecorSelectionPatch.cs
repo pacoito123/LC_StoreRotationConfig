@@ -5,6 +5,8 @@ using System.Linq;
 using System.Reflection.Emit;
 using Unity.Netcode;
 
+using static StoreRotationConfig.Api.RotationItemsAPI;
+
 namespace StoreRotationConfig.Patches
 {
     /// <summary>
@@ -13,12 +15,6 @@ namespace StoreRotationConfig.Patches
     [HarmonyPatch(typeof(Terminal), methodName: nameof(Terminal.RotateShipDecorSelection))]
     internal class RotateShipDecorSelectionPatch
     {
-        // Cached list of every purchasable, non-persistent item available in the store.
-        public static List<UnlockableItem>? AllItems { get; private set; }
-
-        // Cached list of items to always add to the rotating store.
-        public static List<UnlockableItem>? PermanentItems { get; private set; }
-
         /// <summary>
         ///     Fills 'Terminal.ShipDecorSelection' list with items, reading from the configuration file.
         /// </summary>
@@ -45,14 +41,12 @@ namespace StoreRotationConfig.Patches
             // Check if 'Terminal.ShipDecorSelection' list is empty (first load).
             if (shipDecorSelection.Count == 0)
             {
-                // Initialize 'AllItems' list with its capacity set to the total number of unlockable items.
-                AllItems = new(StartOfRound.Instance.unlockablesList.unlockables.Count);
-
+                // TODO: Recomment
                 // Fill 'AllItems' list with every purchasable, non-persistent item.
                 StartOfRound.Instance.unlockablesList.unlockables.DoIf(
                     condition: item => item.shopSelectionNode != null && !item.alwaysInStock
                         && (Plugin.Settings.STOCK_PURCHASED || (!item.hasBeenUnlockedByPlayer && !item.alreadyUnlocked)),
-                    action: AllItems.Add);
+                    action: RegisterItem);
 
                 // Check if there is a whitelist specified in the config file.
                 if (!Plugin.Settings.STOCK_ALL && Plugin.Settings.ITEM_WHITELIST != "")
@@ -60,11 +54,11 @@ namespace StoreRotationConfig.Patches
                     // Obtain names specified in the config file and trim them.
                     List<string> whitelist = Plugin.Settings.ITEM_WHITELIST.Value.Split(',').Select(name => name.Trim()).ToList();
 
-                    // Initialize 'PermanentItems' with the capacity set to the number of names in the whitelist.
-                    PermanentItems = new(whitelist.Count);
-
+                    // TODO: Recomment.
                     // Attempt to add items to the 'PermanentItems' list, if they match a whitelisted name.
-                    AllItems.DoIf(item => whitelist.Contains(item.shopSelectionNode.creatureName), PermanentItems.Add);
+                    AllItems.DoIf(
+                        condition: item => item.shopSelectionNode != null && whitelist.Contains(item.shopSelectionNode.creatureName),
+                        action: AddPermanentItem);
 
                     Plugin.StaticLogger?.LogInfo($"{PermanentItems.Count} items permanently added to the rotating store!");
                 }
@@ -118,6 +112,7 @@ namespace StoreRotationConfig.Patches
             // Obtain a random number of items using the map seed, or use a fixed number if 'minItems' and 'maxItems' are equal.
             int numItems = (minItems != maxItems) ? random.Next(minItems, maxItems + 1) : maxItems;
 
+            // TODO: Recomment?
             // Create 'storeRotation' list (for sorting), and clone the 'AllItems' list (for item selection).
             List<UnlockableItem> storeRotation = new(numItems), allItems = new(AllItems);
 

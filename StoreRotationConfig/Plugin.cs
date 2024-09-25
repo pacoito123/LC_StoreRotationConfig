@@ -14,7 +14,7 @@ namespace StoreRotationConfig
     [BepInDependency("TerminalFormatter", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-        internal const string GUID = "pacoito.StoreRotationConfig", PLUGIN_NAME = "StoreRotationConfig", VERSION = "2.4.1";
+        internal const string GUID = "pacoito.StoreRotationConfig", PLUGIN_NAME = "StoreRotationConfig", VERSION = "2.5.0";
         internal static ManualLogSource? StaticLogger { get; private set; }
 
         /// <summary>
@@ -30,27 +30,11 @@ namespace StoreRotationConfig
         /// <summary>
         ///     Cached terminal instance.
         /// </summary>
-        public static Terminal? Terminal
+        /// <remarks>An error will be thrown if the Terminal cannot be found or is missing.</remarks>
+        public static Terminal Terminal
         {
-            get
-            {
-                // Ensure cached terminal instance exists.
-                if (_terminal == null)
-                {
-                    Terminal = FindObjectOfType<Terminal>();
-                }
-
-                return _terminal;
-            }
-            private set
-            {
-                if (value == null)
-                {
-                    StaticLogger?.LogError("Could not find 'Terminal' instance...");
-                }
-
-                _terminal = value;
-            }
+            get => _terminal ??= FindObjectOfType<Terminal>() ?? throw new ArgumentNullException("_terminal");
+            private set => _terminal = value;
         }
         private static Terminal? _terminal;
 

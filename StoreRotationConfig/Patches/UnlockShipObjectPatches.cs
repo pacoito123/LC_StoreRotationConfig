@@ -1,6 +1,8 @@
 using HarmonyLib;
 using Unity.Netcode;
 
+using static StoreRotationConfig.Api.RotationItemsAPI;
+
 namespace StoreRotationConfig.Patches
 {
     /// <summary>
@@ -73,10 +75,10 @@ namespace StoreRotationConfig.Patches
             Plugin.StaticLogger?.LogDebug($"Removing item '{item.shopSelectionNode.creatureName}' from the store rotation...");
 
             // Attempt to remove item from the 'RotateShipDecorSelectionPatch.AllItems' list.
-            if ((RotateShipDecorSelectionPatch.AllItems?.Remove(item)).GetValueOrDefault())
+            if (UnregisterItem(item))
             {
                 // Attempt to remove item from the 'Terminal.ShipDecorSelection' list.
-                if (Plugin.Terminal == null || !Plugin.Terminal.ShipDecorSelection.Remove(item.shopSelectionNode))
+                if (!Plugin.Terminal.ShipDecorSelection.Remove(item.shopSelectionNode))
                 {
                     Plugin.StaticLogger?.LogWarning($"Item '{item.shopSelectionNode.creatureName}' could not be removed from the store rotation.");
                 }
@@ -87,7 +89,7 @@ namespace StoreRotationConfig.Patches
             }
 
             // Attempt to remove item from the 'RotateShipDecorSelectionPatch.PermanentItems' list.
-            if ((RotateShipDecorSelectionPatch.PermanentItems?.Remove(item)).GetValueOrDefault())
+            if (RemovePermanentItem(item))
             {
                 Plugin.StaticLogger?.LogDebug($"Item '{item.shopSelectionNode.creatureName}' was removed from the list of permanent items.");
             }
