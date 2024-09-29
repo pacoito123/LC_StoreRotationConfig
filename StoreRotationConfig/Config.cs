@@ -1,7 +1,10 @@
 using BepInEx.Configuration;
 using CSync.Extensions;
 using CSync.Lib;
+using HarmonyLib;
 using StoreRotationConfig.Patches;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.Serialization;
 // using Unity.Netcode;
 // using UnityEngine;
@@ -30,10 +33,10 @@ namespace StoreRotationConfig
         [field: SyncedEntryField] public SyncedEntry<bool> STOCK_ALL { get; private set; }
 
         /// <summary>
-        ///     Include already-purchased items in the store rotation. If disabled, prevents purchased items from showing up again
-        ///     in future store rotations, and removes them from the current one.
+        ///     Remove purchased items from the current and future store rotations. If disabled, allows purchased items to show up again
+        ///     in future store rotations.
         /// </summary>
-        [field: SyncedEntryField] public SyncedEntry<bool> STOCK_PURCHASED { get; private set; }
+        [field: SyncedEntryField] public SyncedEntry<bool> REMOVE_PURCHASED { get; private set; }
 
         /// <summary>
         ///     The comma-separated names of items that will be guaranteed to show up in every store rotation. Whitelisted items
@@ -115,11 +118,14 @@ namespace StoreRotationConfig
         /// <param name="cfg">BepInEx configuration file.</param>
         public Config(ConfigFile cfg) : base(Plugin.GUID)
         {
+            // Disable saving config after a call to 'Bind()' is made.
+            cfg.SaveOnConfigSet = false;
+
             // Bind config entries to the config file.
             MIN_ITEMS = cfg.BindSyncedEntry("General", "minItems", 8, "Minimum number of items in the store rotation.");
             MAX_ITEMS = cfg.BindSyncedEntry("General", "maxItems", 12, "Maximum number of items in the store rotation.");
             STOCK_ALL = cfg.BindSyncedEntry("General", "stockAll", false, "Make every item available in the store rotation.");
-            STOCK_PURCHASED = cfg.BindSyncedEntry("General", "stockPurchased", true, "Include already-purchased items in the store rotation. "
+            REMOVE_PURCHASED = cfg.BindSyncedEntry("General", "removePurchased", false, "Remove purchased items from the current and future store rotations."
                 + "If disabled, prevents purchased items from showing up again in future store rotations, and removes them from the current one.");
             ITEM_WHITELIST = cfg.BindSyncedEntry("General", "itemWhitelist", "", "The comma-separated names of items that will be guaranteed to show up "
                 + "in every store rotation. Whitelisted items are always added on top of the range defined by the 'minItems' and 'maxItems' settings, and take priority over the blacklist. "
@@ -156,6 +162,13 @@ namespace StoreRotationConfig
                 TerminalScrollMousePatch.CurrentText = "";
             });
 
+            // Remove old config settings.
+            ClearOrphanedEntries(cfg);
+
+            // Re-enable saving and save config.
+            cfg.SaveOnConfigSet = true;
+            cfg.Save();
+
             // Register to sync config files between host and clients.
             ConfigManager.Register(this);
 
@@ -174,6 +187,21 @@ namespace StoreRotationConfig
                 // Manually trigger a store rotation after config sync.
                 Plugin.Terminal.RotateShipDecorSelection();
             }); */
+        }
+
+        /// <summary>
+        ///     Remove old (orphaned) configuration entries.
+        /// </summary>
+        /// <remarks>Obtained from: https://lethal.wiki/dev/intermediate/custom-configs#better-configuration</remarks>
+        /// <param name="config">The config file to clear orphaned entries from.</param>
+        private void ClearOrphanedEntries(ConfigFile config)
+        {
+            // Obtain 'OrphanedEntries' dictionary from ConfigFile through reflection.
+            PropertyInfo orphanedEntriesProp = AccessTools.Property(typeof(ConfigFile), "OrphanedEntries");
+            Dictionary<ConfigDefinition, string>? orphanedEntries = (Dictionary<ConfigDefinition, string>?)orphanedEntriesProp.GetValue(config);
+
+            // Clear orphaned entries.
+            orphanedEntries?.Clear();
         }
     }
 }

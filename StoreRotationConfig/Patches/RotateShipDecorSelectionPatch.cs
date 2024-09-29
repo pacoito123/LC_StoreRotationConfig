@@ -23,10 +23,18 @@ namespace StoreRotationConfig.Patches
         private static void RotateShipDecorSelection(List<TerminalNode> shipDecorSelection, Random random)
         {
             // Return if client has not yet fully synced with the host.
-            if (Plugin.Settings == null || (!NetworkManager.Singleton.IsHost && !NetworkManager.Singleton.IsServer && !SyncShipUnlockablesPatch.UnlockablesSynced))
+            if (!NetworkManager.Singleton.IsHost && !NetworkManager.Singleton.IsServer && !SyncShipUnlockablesPatch.UnlockablesSynced)
             // && !Plugin.Settings.ConfigSynced))
             {
                 Plugin.StaticLogger?.LogInfo("Waiting for sync from server before rotating store...");
+
+                return;
+            }
+
+            // Return if config file instance is null, just in case.
+            if (Plugin.Settings == null)
+            {
+                Plugin.StaticLogger?.LogError("Configuration could not be loaded or is missing; rotating store won't work.");
 
                 return;
             }
@@ -45,7 +53,7 @@ namespace StoreRotationConfig.Patches
                 // Fill 'AllItems' list with every purchasable, non-persistent item.
                 StartOfRound.Instance.unlockablesList.unlockables.DoIf(
                     condition: item => item.shopSelectionNode != null && !item.alwaysInStock
-                        && (Plugin.Settings.STOCK_PURCHASED || (!item.hasBeenUnlockedByPlayer && !item.alreadyUnlocked)),
+                        && (!Plugin.Settings.REMOVE_PURCHASED || (!item.hasBeenUnlockedByPlayer && !item.alreadyUnlocked)),
                     action: RegisterItem);
 
                 // Check if there is a whitelist specified in the config file.
