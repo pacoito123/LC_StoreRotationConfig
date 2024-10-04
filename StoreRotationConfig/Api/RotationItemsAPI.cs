@@ -48,7 +48,7 @@ namespace StoreRotationConfig.Api
         /// <returns>Whether or not the item was successfully removed.</returns>
         public static bool UnregisterItem(UnlockableItem? item)
         {
-            return item != null && AllItems.Remove(item);
+            return item != null && AllItems.Count != 0 && AllItems.Remove(item);
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace StoreRotationConfig.Api
         /// <returns>Whether or not the item was successfully removed.</returns>
         public static bool RemovePermanentItem(UnlockableItem? item)
         {
-            return item != null && PermanentItems.Remove(item);
+            return item != null && PermanentItems.Count != 0 && PermanentItems.Remove(item);
         }
     }
 }

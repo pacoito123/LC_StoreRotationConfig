@@ -2,9 +2,22 @@
 
 ## [2.5.0]
 
-Basic API added for rotation items.
+Basic API added for managing rotating items, fixed rotating shop desync with 'removePurchased' setting.
 
 - Created `RotationItemsAPI` class, which contains several helper methods for interacting with which items can appear in store rotations.
+  - Meant for other mods to use to allow items to appear in store rotations, or to simply add them to the list of permanent items.
+- Modified `RotateShipDecorSelectionPatch` and `UnlockShipObjectPatches` to use the new API.
+- Tweaked a few things with the config file.
+  - Orphaned nodes (old entries) are now cleared when launching the game.
+  - Configuration file no longer saves after every single `Bind()` call, which could very slightly impact loading performance.
+  - Renamed `stockPurchased` setting to `removePurchased`, and inverted its function.
+- Fixed a desync that could happen with the `removePurchased` setting enabled when joining a lobby with already-purchased items, or items placed in storage.
+  - Added transpiler for `StartOfRound.SyncShipUnlockablesServerRpc()` to actually fill the `storedItems` list before sending it to all clients.
+    - When an item is put into storage, its `PlaceableShipObject` instance is despawned, but `StartOfRound.SyncShipUnlockablesServerRpc()` uses `Object.FindObjectsOfType<PlaceableShipObject>()` to fill the `storedItems` list, so it ends up always being empty.
+  - Added postfix for `SyncShipUnlockablesClientRpc()` to update each of the ship unlockables' `hasBeenUnlockedByPlayer` and `inStorage` fields on all clients.
+  - Ship purchases, as well as ship objects in storage, should now be properly synced upon joining a lobby.
+  - This also fixes clients not being able to see items in storage when joining a lobby, though there's probably a better way to implement it.
+- Refactored patch for `StartOfRound.UnlockShipObject()` a bit.
 
 ## [2.4.1]
 

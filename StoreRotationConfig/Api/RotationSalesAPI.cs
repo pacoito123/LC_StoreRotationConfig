@@ -112,7 +112,8 @@ namespace StoreRotationConfig.Api
         {
             discount = 0;
 
-            return item != null && RotationSales != null && RotationSales.Remove(item, out discount);
+            return item != null && RotationSales != null && RotationSales.Count > 0
+                && RotationSales.Remove(item, out discount);
         }
 
         /// <summary>

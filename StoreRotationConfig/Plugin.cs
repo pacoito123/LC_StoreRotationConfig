@@ -30,10 +30,17 @@ namespace StoreRotationConfig
         /// <summary>
         ///     Cached terminal instance.
         /// </summary>
-        /// <remarks>An error will be thrown if the Terminal cannot be found or is missing.</remarks>
-        public static Terminal Terminal
+        public static Terminal? Terminal
         {
-            get => _terminal ??= FindObjectOfType<Terminal>() ?? throw new ArgumentNullException("_terminal");
+            get
+            {
+                if (_terminal == null)
+                {
+                    Terminal = FindObjectOfType<Terminal>();
+                }
+
+                return _terminal;
+            }
             private set => _terminal = value;
         }
         private static Terminal? _terminal;

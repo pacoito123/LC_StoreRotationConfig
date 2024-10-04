@@ -176,7 +176,7 @@ namespace StoreRotationConfig
             /* InitialSyncCompleted += new((_, _) =>
             {
                 // Return if local game instance is hosting the server.
-                if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer)
+                if (NetworkManager.Singleton.IsHost)
                 {
                     return;
                 }

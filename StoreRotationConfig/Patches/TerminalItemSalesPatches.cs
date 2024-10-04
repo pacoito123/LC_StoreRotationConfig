@@ -25,7 +25,7 @@ namespace StoreRotationConfig.Patches
             }
 
             // Return if client has not yet fully synced with the host.
-            if (!NetworkManager.Singleton.IsHost && !NetworkManager.Singleton.IsServer && !SyncShipUnlockablesPatch.UnlockablesSynced)
+            if (!NetworkManager.Singleton.IsHost && !SyncShipUnlockablesPatch.UnlockablesSynced)
             // && !Plugin.Settings.ConfigSynced)
             {
                 Plugin.StaticLogger?.LogInfo("Waiting for sync from server before assigning sales...");

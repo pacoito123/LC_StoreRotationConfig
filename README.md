@@ -15,7 +15,7 @@ Simple mod that adds configurability to the number of items that show up in the 
 
 Intended for when there's a large number of modded items (suits, furniture, etc.) in the store, and the vanilla store rotation makes it too unlikely to ever see a desired item in stock.
 
-Compatible with `v45`, `v49`, `v50`, `v56`, `v61`, and `v64`.
+Compatible with `v61`, and `v64`. Should also be compatible with `v45`, `v49`, `v50`, `v56`, `v61`, and `v64`, though the latest releases are untested and downgrading to an older version might be required.
 
 Uses [CSync (v5.0.1 and above)](https://thunderstore.io/c/lethal-company/p/Sigurd/CSync) by [Lordfirespeed](https://github.com/Lorefirespeed) to sync config settings between host and clients.
 

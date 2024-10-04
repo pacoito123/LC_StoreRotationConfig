@@ -23,7 +23,7 @@ namespace StoreRotationConfig.Patches
         private static void RotateShipDecorSelection(List<TerminalNode> shipDecorSelection, Random random)
         {
             // Return if client has not yet fully synced with the host.
-            if (!NetworkManager.Singleton.IsHost && !NetworkManager.Singleton.IsServer && !SyncShipUnlockablesPatch.UnlockablesSynced)
+            if (!NetworkManager.Singleton.IsHost && !SyncShipUnlockablesPatch.UnlockablesSynced)
             // && !Plugin.Settings.ConfigSynced))
             {
                 Plugin.StaticLogger?.LogInfo("Waiting for sync from server before rotating store...");
@@ -49,20 +49,18 @@ namespace StoreRotationConfig.Patches
             // Check if 'Terminal.ShipDecorSelection' list is empty (first load).
             if (shipDecorSelection.Count == 0)
             {
-                // TODO: Recomment
                 // Fill 'AllItems' list with every purchasable, non-persistent item.
                 StartOfRound.Instance.unlockablesList.unlockables.DoIf(
                     condition: item => item.shopSelectionNode != null && !item.alwaysInStock
-                        && (!Plugin.Settings.REMOVE_PURCHASED || (!item.hasBeenUnlockedByPlayer && !item.alreadyUnlocked)),
+                        && (!Plugin.Settings.REMOVE_PURCHASED || !item.hasBeenUnlockedByPlayer),
                     action: RegisterItem);
 
-                // Check if there is a whitelist specified in the config file.
-                if (!Plugin.Settings.STOCK_ALL && Plugin.Settings.ITEM_WHITELIST != "")
+                // Check if there is a whitelist specified in the config file, AND the 'stockAll' setting is not enabled.
+                if (Plugin.Settings.ITEM_WHITELIST.Value.Length > 0 && !Plugin.Settings.STOCK_ALL)
                 {
                     // Obtain names specified in the config file and trim them.
                     List<string> whitelist = Plugin.Settings.ITEM_WHITELIST.Value.Split(',').Select(name => name.Trim()).ToList();
 
-                    // TODO: Recomment.
                     // Attempt to add items to the 'PermanentItems' list, if they match a whitelisted name.
                     AllItems.DoIf(
                         condition: item => item.shopSelectionNode != null && whitelist.Contains(item.shopSelectionNode.creatureName),
@@ -72,7 +70,7 @@ namespace StoreRotationConfig.Patches
                 }
 
                 // Check if there is a blacklist specified in the config file.
-                if (Plugin.Settings.ITEM_BLACKLIST != "")
+                if (Plugin.Settings.ITEM_BLACKLIST.Value.Length > 0)
                 {
                     // Obtain names specified in the config file and trim them.
                     List<string> blacklist = Plugin.Settings.ITEM_BLACKLIST.Value.Split(',').Select(name => name.Trim()).ToList();
@@ -95,6 +93,8 @@ namespace StoreRotationConfig.Patches
 
                     // Fill store rotation with every item in the 'AllItems' list.
                     AllItems.ForEach(item => shipDecorSelection.Add(item.shopSelectionNode));
+
+                    Plugin.StaticLogger?.LogInfo($"All {AllItems.Count} items added to the store rotation!");
                 }
             }
 
@@ -120,12 +120,11 @@ namespace StoreRotationConfig.Patches
             // Obtain a random number of items using the map seed, or use a fixed number if 'minItems' and 'maxItems' are equal.
             int numItems = (minItems != maxItems) ? random.Next(minItems, maxItems + 1) : maxItems;
 
-            // TODO: Recomment?
             // Create 'storeRotation' list (for sorting), and clone the 'AllItems' list (for item selection).
             List<UnlockableItem> storeRotation = new(numItems), allItems = new(AllItems);
 
-            // Check if there is a whitelist specified in the config file.
-            if (Plugin.Settings.ITEM_WHITELIST != "" && PermanentItems != null && PermanentItems.Count > 0)
+            // Check if there are permanent items to add.
+            if (PermanentItems.Count > 0)
             {
                 // Remove whitelisted items from the 'allItems' cloned list and add them directly to the 'storeRotation' list.
                 PermanentItems.Do(item =>
