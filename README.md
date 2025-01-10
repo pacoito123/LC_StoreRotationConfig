@@ -1,7 +1,7 @@
 # StoreRotationConfig
 
 [![Thunderstore Downloads](https://img.shields.io/thunderstore/dt/pacoito/StoreRotationConfig?style=for-the-badge&logo=thunderstore&color=mediumseagreen
-)](https://thunderstore.io/c/lethal-company/p/pacoito/StoreRotationConfig/)
+)](https://thunderstore.io/c/lethal-company/p/pacoito/StoreRotationConfig)
 [![GitHub Releases](https://img.shields.io/github/v/release/pacoito123/LC_StoreRotationConfig?display_name=tag&style=for-the-badge&logo=github&color=steelblue
 )](https://github.com/pacoito123/LC_StoreRotationConfig/releases)
 [![License](https://img.shields.io/github/license/pacoito123/LC_StoreRotationConfig?style=for-the-badge&logo=github&color=teal
@@ -15,7 +15,7 @@ Simple mod that adds configurability to the number of items that show up in the 
 
 Intended for when there's a large number of modded items (suits, furniture, etc.) in the store, and the vanilla store rotation makes it too unlikely to ever see a desired item in stock.
 
-Compatible with `v61`, and `v64`. Should also be compatible with `v45`, `v49`, `v50`, `v56`, `v61`, and `v64`, though the latest releases are untested and downgrading to an older version might be required.
+Compatible with `v64`, and `v69`. Should also be compatible with `v45`, `v49`, `v50`, `v56`, and `v61`, though the latest releases of this mod are untested in these older versions, and downgrading to an older release might be required.
 
 Uses [CSync (v5.0.1 and above)](https://thunderstore.io/c/lethal-company/p/Sigurd/CSync) by [Lordfirespeed](https://github.com/Lorefirespeed) to sync config settings between host and clients.
 

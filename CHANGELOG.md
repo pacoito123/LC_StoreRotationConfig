@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.1]
+
+Removed goofy TerminalFormatter compatibility, also recompiled for v69.
+
+- **NOTE:** [TerminalFormatter](https://thunderstore.io/c/lethal-company/p/mrov/TerminalFormatter) `v0.2.24` is currently incompatible; rotating item discounts aren't displayed (though they still apply), and any available items above the vanilla cap are not shown (but they can still be purchased).
+  - Make sure to update to a newer version once available!
+
 ## [2.5.0]
 
 Basic API added for managing rotating items, fixed rotating shop desync with 'removePurchased' setting.

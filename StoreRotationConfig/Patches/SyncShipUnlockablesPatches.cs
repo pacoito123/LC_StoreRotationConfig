@@ -1,6 +1,4 @@
-using GameNetcodeStuff;
 using HarmonyLib;
-using StoreRotationConfig.Compatibility;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
@@ -91,6 +89,8 @@ namespace StoreRotationConfig.Patches
             // Check if unlockables need to be synced.
             if (!UnlockablesSynced)
             {
+                Plugin.StaticLogger?.LogInfo("Attempting to sync purchased and stored ship unlockables...");
+
                 // Sync purchased suits.
                 Resources.FindObjectsOfTypeAll<UnlockableSuit>().Select(suit => ___unlockablesList.unlockables[suit.suitID]).Do(item =>
                 {
@@ -146,7 +146,7 @@ namespace StoreRotationConfig.Patches
             UnlockablesSynced = false;
             // ...
 
-            // Handle 'TerminalFormatter' compatibility here since I can't seem to get it to load before my mod, despite the soft dependency.
+            /* // Handle 'TerminalFormatter' compatibility here since I can't seem to get it to load before my mod, despite the soft dependency.
             if (Plugin.Settings != null && Plugin.Settings.TERMINAL_FORMATTER_COMPAT.Value && TerminalFormatterCompatibility.Enabled
                 && !TerminalFormatterCompatibility.Patched)
             {
@@ -163,7 +163,7 @@ namespace StoreRotationConfig.Patches
                 TerminalFormatterCompatibility.Patched = true;
 
                 Plugin.StaticLogger?.LogInfo($"'TerminalFormatter' patched!");
-            }
+            } */
         }
     }
 }

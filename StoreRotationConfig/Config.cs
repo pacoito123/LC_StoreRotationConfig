@@ -100,10 +100,10 @@ namespace StoreRotationConfig
         /// </summary>
         public ConfigEntry<int> LINES_TO_SCROLL { get; private set; }
 
-        /// <summary>
+        /* /// <summary>
         ///     Enable compatibility with 'TerminalFormatter'.
         /// </summary>
-        public ConfigEntry<bool> TERMINAL_FORMATTER_COMPAT { get; private set; }
+        public ConfigEntry<bool> TERMINAL_FORMATTER_COMPAT { get; private set; } */
 
         /* /// <summary>
         ///     Whether config has been successfully synced with the host or not; reset upon returning to main menu.
@@ -151,9 +151,9 @@ namespace StoreRotationConfig
             LINES_TO_SCROLL = cfg.Bind("Miscellaneous", "linesToScroll", 20, new ConfigDescription("Number of lines to scroll at a time with "
                 + "'relativeScroll' enabled.", new AcceptableValueRange<int>(1, 28)));
 
-            TERMINAL_FORMATTER_COMPAT = cfg.Bind("Compatibility", "terminalFormatterCompat", true, "Enable compatibility between 'TerminalFormatter' "
+            /* TERMINAL_FORMATTER_COMPAT = cfg.Bind("Compatibility", "terminalFormatterCompat", true, "Enable compatibility between 'TerminalFormatter' "
                 + "and the item sales system. Patches some methods so a restart is probably required.\nNOTE: This setting will be removed once compatibility is handled within 'TerminalFormatter' "
-                + "itself, since it wouldn't require any complex patching from their end.");
+                + "itself, since it wouldn't require any complex patching from their end."); */
             // ...
 
             // Reset cached text if 'linesToScroll' is updated in-game.

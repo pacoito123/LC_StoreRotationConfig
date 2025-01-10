@@ -1,4 +1,4 @@
-using HarmonyLib;
+/* using HarmonyLib;
 using StoreRotationConfig.Api;
 using System.Collections.Generic;
 using System.Reflection.Emit;
@@ -73,4 +73,4 @@ namespace StoreRotationConfig.Compatibility
             .InstructionEnumeration();
         }
     }
-}
+} */
