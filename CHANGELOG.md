@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.6.1]
+
+Actually included the updated plugin file this time...
+
 ## [2.6.0]
 
 Recompiled and updated for v72!
