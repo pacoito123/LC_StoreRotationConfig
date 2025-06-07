@@ -24,7 +24,6 @@ namespace StoreRotationConfig.Patches
         {
             // Return if client has not yet fully synced with the host.
             if (!NetworkManager.Singleton.IsHost && !SyncShipUnlockablesPatch.UnlockablesSynced)
-            // && !Plugin.Settings.ConfigSynced))
             {
                 Plugin.StaticLogger?.LogInfo("Waiting for sync from server before rotating store...");
 
@@ -59,7 +58,7 @@ namespace StoreRotationConfig.Patches
                 if (Plugin.Settings.ITEM_WHITELIST.Value.Length > 0 && !Plugin.Settings.STOCK_ALL)
                 {
                     // Obtain names specified in the config file and trim them.
-                    List<string> whitelist = Plugin.Settings.ITEM_WHITELIST.Value.Split(',').Select(name => name.Trim()).ToList();
+                    List<string> whitelist = [.. Plugin.Settings.ITEM_WHITELIST.Value.Split(',').Select(name => name.Trim())];
 
                     // Attempt to add items to the 'PermanentItems' list, if they match a whitelisted name.
                     AllItems.DoIf(
@@ -73,7 +72,7 @@ namespace StoreRotationConfig.Patches
                 if (Plugin.Settings.ITEM_BLACKLIST.Value.Length > 0)
                 {
                     // Obtain names specified in the config file and trim them.
-                    List<string> blacklist = Plugin.Settings.ITEM_BLACKLIST.Value.Split(',').Select(name => name.Trim()).ToList();
+                    List<string> blacklist = [.. Plugin.Settings.ITEM_BLACKLIST.Value.Split(',').Select(name => name.Trim())];
 
                     // Attempt to remove items from the 'AllItems' list, if they match a blacklisted name.
                     int itemsBlacklisted = AllItems.RemoveAll(item => blacklist.Contains(item.shopSelectionNode.creatureName));
@@ -121,7 +120,7 @@ namespace StoreRotationConfig.Patches
             int numItems = (minItems != maxItems) ? random.Next(minItems, maxItems + 1) : maxItems;
 
             // Create 'storeRotation' list (for sorting), and clone the 'AllItems' list (for item selection).
-            List<UnlockableItem> storeRotation = new(numItems), allItems = new(AllItems);
+            List<UnlockableItem> storeRotation = new(numItems), allItems = [.. AllItems];
 
             // Check if there are permanent items to add.
             if (PermanentItems.Count > 0)
@@ -175,7 +174,7 @@ namespace StoreRotationConfig.Patches
             return new CodeMatcher(instructions).MatchForward(false,
                 new(OpCodes.Ldarg_0),
                 new(OpCodes.Ldfld, AccessTools.Field(typeof(Terminal), nameof(Terminal.ShipDecorSelection))),
-                new(OpCodes.Callvirt, AccessTools.Method(typeof(List<TerminalNode>), nameof(List<TerminalNode>.Clear))))
+                new(OpCodes.Callvirt, AccessTools.Method(typeof(List<TerminalNode>), nameof(List<>.Clear))))
             .Insert(
                 new(OpCodes.Ldarg_0),
                 new(OpCodes.Ldfld, AccessTools.Field(typeof(Terminal), nameof(Terminal.ShipDecorSelection))),

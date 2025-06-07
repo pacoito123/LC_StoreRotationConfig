@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.6.0]
+
+Recompiled and updated for v72!
+
+- Removed (nearly) all my patches to sync already-purchased and/or in-storage unlockable items, since vanilla appears to now be handling it properly.
+  - Before v70, `UnlockableItem.hasBeenUnlockedByPlayer` wasn't being set for unlockable items upon joining a lobby, and `SyncShipUnlockablesClientRpc()`'s `storedItems` parameter sent to clients was always just an empty array.
+
 ## [2.5.1]
 
 Removed goofy TerminalFormatter compatibility, also recompiled for v69.

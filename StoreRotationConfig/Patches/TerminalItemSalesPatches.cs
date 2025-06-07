@@ -26,7 +26,6 @@ namespace StoreRotationConfig.Patches
 
             // Return if client has not yet fully synced with the host.
             if (!NetworkManager.Singleton.IsHost && !SyncShipUnlockablesPatch.UnlockablesSynced)
-            // && !Plugin.Settings.ConfigSynced)
             {
                 Plugin.StaticLogger?.LogInfo("Waiting for sync from server before assigning sales...");
 
@@ -82,7 +81,7 @@ namespace StoreRotationConfig.Patches
             ResetSales(itemsOnSale);
 
             // Clone the 'Terminal.ShipDecorSelection' list for item selection.
-            List<TerminalNode> storeRotation = new(__instance.ShipDecorSelection);
+            List<TerminalNode> storeRotation = [.. __instance.ShipDecorSelection];
 
             // Iterate for every item that is to be on sale, exiting early if there are no more items in the 'storeRotation' cloned list.
             for (int i = 0; i < itemsOnSale && storeRotation.Count != 0; i++)

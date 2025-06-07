@@ -15,7 +15,7 @@ Simple mod that adds configurability to the number of items that show up in the 
 
 Intended for when there's a large number of modded items (suits, furniture, etc.) in the store, and the vanilla store rotation makes it too unlikely to ever see a desired item in stock.
 
-Compatible with `v64`, and `v69`. Should also be compatible with `v45`, `v49`, `v50`, `v56`, and `v61`, though the latest releases of this mod are untested in these older versions, and downgrading to an older release might be required.
+Compatible with `v72`. `v2.5.1` and below should be compatible with `v45`, `v49`, `v50`, `v56`, `v61`, and `v69`, though the later releases of this mod are untested in these older versions, and downgrading to an even older release might be required.
 
 Uses [CSync (v5.0.1 and above)](https://thunderstore.io/c/lethal-company/p/Sigurd/CSync) by [Lordfirespeed](https://github.com/Lorefirespeed) to sync config settings between host and clients.
 
@@ -62,10 +62,6 @@ There's also the possibility of something going wrong if the `Terminal.ShipDecor
 The sales system is completely separate from the regular store item sales, so it _shouldn't_ conflict with other mods that may modify these sales (e.g. allowing more items to be on sale). What _is_ likely to break, however, is displaying the discount number in the store page (e.g. `50% OFF!`) if another mod is changing the terminal store page. The discount should still apply regardless, but I'll try to patch any incompatibilities found as soon as possible.
 
 The `relativeScroll` tweak is not limited to just the store page, and could potentially fix scrolling issues in other terminal pages, but it could also be incompatible or cause issues with other mods that modify or set the `PlayerControllerB.terminalScrollVertical` value.
-
-~~**NOTE:** This mod is _technically_ server-side, but clients need the mod installed to be able to see and purchase any of the additional items added to the vanilla store rotation. Similarly, joining a lobby that doesn't have this mod installed will not modify the store rotation.~~
-
-**NOTE:** As of `v2.0.0`, this mod is now required to be installed on **both host and clients**, though I have commented code ready to once again make it (technically) server-side, if `CSync` reimplements the ability to join a lobby with either client or host missing a mod that depends on it.
 
 ---
 

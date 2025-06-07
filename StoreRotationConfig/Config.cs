@@ -6,8 +6,6 @@ using StoreRotationConfig.Patches;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.Serialization;
-// using Unity.Netcode;
-// using UnityEngine;
 
 namespace StoreRotationConfig
 {
@@ -100,17 +98,6 @@ namespace StoreRotationConfig
         /// </summary>
         public ConfigEntry<int> LINES_TO_SCROLL { get; private set; }
 
-        /* /// <summary>
-        ///     Enable compatibility with 'TerminalFormatter'.
-        /// </summary>
-        public ConfigEntry<bool> TERMINAL_FORMATTER_COMPAT { get; private set; } */
-
-        /* /// <summary>
-        ///     Whether config has been successfully synced with the host or not; reset upon returning to main menu.
-        /// </summary>
-        /// <remarks>Not really needed, mostly here in case 'CSync' reimplements the ability to join hosts who don't have this mod installed.</remarks>
-        public bool ConfigSynced { get; internal set; } = false; */
-
         /// <summary>
         ///     Constructor for initializing plugin configuration. Registers instance in 'ConfigManager', binds entries to configuration file,
         ///     and defines code to execute after a successful sync.
@@ -126,7 +113,7 @@ namespace StoreRotationConfig
             MAX_ITEMS = cfg.BindSyncedEntry("General", "maxItems", 12, "Maximum number of items in the store rotation.");
             STOCK_ALL = cfg.BindSyncedEntry("General", "stockAll", false, "Make every item available in the store rotation.");
             REMOVE_PURCHASED = cfg.BindSyncedEntry("General", "removePurchased", false, "Remove purchased items from the current and future store rotations."
-                + "If disabled, prevents purchased items from showing up again in future store rotations, and removes them from the current one.");
+                + "If enabled, prevents purchased items from showing up again in future store rotations, and removes them from the current one.");
             ITEM_WHITELIST = cfg.BindSyncedEntry("General", "itemWhitelist", "", "The comma-separated names of items that will be guaranteed to show up "
                 + "in every store rotation. Whitelisted items are always added on top of the range defined by the 'minItems' and 'maxItems' settings, and take priority over the blacklist. "
                 + "Has no effect with the 'stockAll' setting enabled.\nExample: \"Bee suit,Goldfish,Television\"");
@@ -150,10 +137,6 @@ namespace StoreRotationConfig
                 + "added to the rotating store.");
             LINES_TO_SCROLL = cfg.Bind("Miscellaneous", "linesToScroll", 20, new ConfigDescription("Number of lines to scroll at a time with "
                 + "'relativeScroll' enabled.", new AcceptableValueRange<int>(1, 28)));
-
-            /* TERMINAL_FORMATTER_COMPAT = cfg.Bind("Compatibility", "terminalFormatterCompat", true, "Enable compatibility between 'TerminalFormatter' "
-                + "and the item sales system. Patches some methods so a restart is probably required.\nNOTE: This setting will be removed once compatibility is handled within 'TerminalFormatter' "
-                + "itself, since it wouldn't require any complex patching from their end."); */
             // ...
 
             // Reset cached text if 'linesToScroll' is updated in-game.
@@ -171,22 +154,6 @@ namespace StoreRotationConfig
 
             // Register to sync config files between host and clients.
             ConfigManager.Register(this);
-
-            // Function to run once the config sync is completed.
-            /* InitialSyncCompleted += new((_, _) =>
-            {
-                // Return if local game instance is hosting the server.
-                if (NetworkManager.Singleton.IsHost)
-                {
-                    return;
-                }
-
-                // Set config sync status to true (successfully synced).
-                ConfigSynced = true;
-
-                // Manually trigger a store rotation after config sync.
-                Plugin.Terminal.RotateShipDecorSelection();
-            }); */
         }
 
         /// <summary>

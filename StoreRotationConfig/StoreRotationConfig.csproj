@@ -3,7 +3,7 @@
     <PropertyGroup>
         <AssemblyName>StoreRotationConfig</AssemblyName>
         <Description>Configure the number of items in each store rotation, show them all, remove purchases, sort them, and/or enable sales for them.</Description>
-        <Version>2.5.1</Version>
+        <Version>2.6.0</Version>
     </PropertyGroup>
 
     <!-- Project properties. -->
@@ -11,7 +11,7 @@
         <TargetFramework>netstandard2.1</TargetFramework>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>preview</LangVersion>
-        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageLicenseFile>../LICENSE</PackageLicenseFile>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
@@ -24,6 +24,7 @@
 
     <!-- Disable certain warnings. -->
     <PropertyGroup>
+        <NoWarn>$(NoWarn);IDE0032</NoWarn>
         <NoWarn>$(NoWarn);IDE0051</NoWarn>
         <NoWarn>$(NoWarn);IDE0060</NoWarn>
     </PropertyGroup>
@@ -45,16 +46,7 @@
         <PackageReference Include="BepInEx.Core" Version="5.*" />
         <PackageReference Include="Sigurd.BepInEx.CSync" Version="5.0.1" />
         <PackageReference Include="UnityEngine.Modules" Version="2022.3.9" IncludeAssets="compile" />
-        <Reference Include="Assembly-CSharp">
-            <HintPath>managed\Assembly-CSharp.dll</HintPath>
-        </Reference>
-        <Reference Include="Unity.Netcode.Runtime">
-            <HintPath>managed\Unity.Netcode.Runtime.dll</HintPath>
-        </Reference>
-        <!-- Compatibility with other mods. -->
-        <!-- <Reference Include="TerminalFormatter">
-            <HintPath>managed\TerminalFormatter.dll</HintPath>
-        </Reference> -->
+        <PackageReference Include="LethalCompany.GameLibs.Steam" Version="70.0.0-ngd.0" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">

@@ -11,10 +11,9 @@ namespace StoreRotationConfig
     /// </summary>
     [BepInPlugin(GUID, PLUGIN_NAME, VERSION)]
     [BepInDependency("com.sigurd.csync", "5.0.1")]
-    // [BepInDependency("TerminalFormatter", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-        internal const string GUID = "pacoito.StoreRotationConfig", PLUGIN_NAME = "StoreRotationConfig", VERSION = "2.5.1";
+        internal const string GUID = "pacoito.StoreRotationConfig", PLUGIN_NAME = "StoreRotationConfig", VERSION = "2.6.0";
         internal static ManualLogSource? StaticLogger { get; private set; }
 
         /// <summary>
@@ -34,16 +33,15 @@ namespace StoreRotationConfig
         {
             get
             {
-                if (_terminal == null)
+                if (field == null)
                 {
                     Terminal = FindObjectOfType<Terminal>();
                 }
 
-                return _terminal;
+                return field;
             }
-            private set => _terminal = value;
+            private set;
         }
-        private static Terminal? _terminal;
 
         private void Awake()
         {
