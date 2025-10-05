@@ -12,20 +12,18 @@ namespace StoreRotationConfig.Api
         /// </summary>
         public static List<UnlockableItem> AllItems
         {
-            get => _allItems ??= new(StartOfRound.Instance.unlockablesList.unlockables.Count + 1);
-            private set => _allItems = value;
+            get => field ??= new(StartOfRound.Instance.unlockablesList.unlockables.Count + 1);
+            private set;
         }
-        private static List<UnlockableItem>? _allItems;
 
         /// <summary>
         ///     Cached list of items to always add to the rotating store.
         /// </summary>
         public static List<UnlockableItem> PermanentItems
         {
-            get => _permanentItems ??= new(StartOfRound.Instance.unlockablesList.unlockables.Count + 1);
-            private set => _permanentItems = value;
+            get => field ??= new(StartOfRound.Instance.unlockablesList.unlockables.Count + 1);
+            private set;
         }
-        private static List<UnlockableItem>? _permanentItems;
 
         /// <summary>
         ///     Add an item to the 'AllItems' list.

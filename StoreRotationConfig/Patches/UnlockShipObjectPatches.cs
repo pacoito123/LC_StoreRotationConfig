@@ -20,29 +20,29 @@ namespace StoreRotationConfig.Patches
             // Return if item OR its shop node does not exist.
             if (item == null || item.shopSelectionNode == null)
             {
-                Plugin.StaticLogger?.LogWarning($"Item #{unlockableID} and/or its terminal node could not be found.");
+                Plugin.StaticLogger.LogWarning($"Item #{unlockableID} and/or its terminal node could not be found.");
 
                 return;
             }
 
-            Plugin.StaticLogger?.LogDebug($"Attempting to remove item '{item.unlockableName}' from the store rotation on local client...");
+            Plugin.StaticLogger.LogDebug($"Attempting to remove item '{item.unlockableName}' from the store rotation on local client...");
 
             // Attempt to remove item from the 'RotateShipDecorSelectionPatch.PermanentItems' list.
             if (RemovePermanentItem(item))
             {
-                Plugin.StaticLogger?.LogDebug($"Removed item '{item.shopSelectionNode.creatureName}' from the list of permanent items.");
+                Plugin.StaticLogger.LogDebug($"Removed item '{item.shopSelectionNode.creatureName}' from the list of permanent items.");
             }
 
             // Attempt to remove item from the current store rotation.
             if (Plugin.Terminal?.ShipDecorSelection.Remove(item.shopSelectionNode) == true)
             {
-                Plugin.StaticLogger?.LogDebug($"Removed item '{item.shopSelectionNode.creatureName}' from the current store rotation.");
+                Plugin.StaticLogger.LogDebug($"Removed item '{item.shopSelectionNode.creatureName}' from the current store rotation.");
             }
 
             // Attempt to remove item from future store rotations.
             if (UnregisterItem(item))
             {
-                Plugin.StaticLogger?.LogDebug($"Removed item '{item.shopSelectionNode.creatureName}' from future store rotations.");
+                Plugin.StaticLogger.LogDebug($"Removed item '{item.shopSelectionNode.creatureName}' from future store rotations.");
             }
         }
 

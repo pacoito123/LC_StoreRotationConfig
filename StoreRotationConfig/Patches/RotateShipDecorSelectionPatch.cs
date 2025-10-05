@@ -25,7 +25,7 @@ namespace StoreRotationConfig.Patches
             // Return if client has not yet fully synced with the host.
             if (!NetworkManager.Singleton.IsHost && !SyncShipUnlockablesPatch.UnlockablesSynced)
             {
-                Plugin.StaticLogger?.LogInfo("Waiting for sync from server before rotating store...");
+                Plugin.StaticLogger.LogInfo("Waiting for sync from server before rotating store...");
 
                 return;
             }
@@ -33,15 +33,15 @@ namespace StoreRotationConfig.Patches
             // Return if config file instance is null, just in case.
             if (Plugin.Settings == null)
             {
-                Plugin.StaticLogger?.LogError("Configuration could not be loaded or is missing; rotating store won't work.");
+                Plugin.StaticLogger.LogError("Configuration could not be loaded or is missing; rotating store won't work.");
 
                 return;
             }
 
             // Obtain values from the config file.
-            int maxItems = Math.Abs(Plugin.Settings.MAX_ITEMS),
-                minItems = Math.Abs(Plugin.Settings.MIN_ITEMS);
-            bool stockAll = Plugin.Settings.STOCK_ALL,
+            int maxItems = Math.Abs(Plugin.Settings.MAX_ITEMS.Value),
+                minItems = Math.Abs(Plugin.Settings.MIN_ITEMS.Value);
+            bool stockAll = Plugin.Settings.STOCK_ALL.Value,
                 sortItems = Plugin.Settings.SORT_ITEMS.Value;
             // ...
 
@@ -51,11 +51,11 @@ namespace StoreRotationConfig.Patches
                 // Fill 'AllItems' list with every purchasable, non-persistent item.
                 StartOfRound.Instance.unlockablesList.unlockables.DoIf(
                     condition: item => item.shopSelectionNode != null && !item.alwaysInStock
-                        && (!Plugin.Settings.REMOVE_PURCHASED || !item.hasBeenUnlockedByPlayer),
+                        && (!Plugin.Settings.REMOVE_PURCHASED.Value || !item.hasBeenUnlockedByPlayer),
                     action: RegisterItem);
 
                 // Check if there is a whitelist specified in the config file, AND the 'stockAll' setting is not enabled.
-                if (Plugin.Settings.ITEM_WHITELIST.Value.Length > 0 && !Plugin.Settings.STOCK_ALL)
+                if (Plugin.Settings.ITEM_WHITELIST.Value.Length > 0 && !Plugin.Settings.STOCK_ALL.Value)
                 {
                     // Obtain names specified in the config file and trim them.
                     List<string> whitelist = [.. Plugin.Settings.ITEM_WHITELIST.Value.Split(',').Select(name => name.Trim())];
@@ -65,7 +65,7 @@ namespace StoreRotationConfig.Patches
                         condition: item => item.shopSelectionNode != null && whitelist.Contains(item.shopSelectionNode.creatureName),
                         action: AddPermanentItem);
 
-                    Plugin.StaticLogger?.LogInfo($"{PermanentItems.Count} items permanently added to the rotating store!");
+                    Plugin.StaticLogger.LogInfo($"{PermanentItems.Count} items permanently added to the rotating store!");
                 }
 
                 // Check if there is a blacklist specified in the config file.
@@ -77,7 +77,7 @@ namespace StoreRotationConfig.Patches
                     // Attempt to remove items from the 'AllItems' list, if they match a blacklisted name.
                     int itemsBlacklisted = AllItems.RemoveAll(item => blacklist.Contains(item.shopSelectionNode.creatureName));
 
-                    Plugin.StaticLogger?.LogInfo($"{itemsBlacklisted} items removed from the rotating store.");
+                    Plugin.StaticLogger.LogInfo($"{itemsBlacklisted} items removed from the rotating store.");
                 }
 
                 // Check if 'stockAll' setting is enabled.
@@ -93,7 +93,7 @@ namespace StoreRotationConfig.Patches
                     // Fill store rotation with every item in the 'AllItems' list.
                     AllItems.ForEach(item => shipDecorSelection.Add(item.shopSelectionNode));
 
-                    Plugin.StaticLogger?.LogInfo($"All {AllItems.Count} items added to the store rotation!");
+                    Plugin.StaticLogger.LogInfo($"All {AllItems.Count} items added to the store rotation!");
                 }
             }
 
@@ -103,7 +103,7 @@ namespace StoreRotationConfig.Patches
                 return;
             }
 
-            Plugin.StaticLogger?.LogInfo("Rotating store...");
+            Plugin.StaticLogger.LogInfo("Rotating store...");
 
             // Clear previous store rotation.
             shipDecorSelection.Clear();
@@ -111,7 +111,7 @@ namespace StoreRotationConfig.Patches
             // Use 'minItems' for 'maxItems', if the former is greater than the latter.
             if (minItems > maxItems)
             {
-                Plugin.StaticLogger?.LogWarning("Value for 'minItems' is larger than 'maxItems', using it instead...");
+                Plugin.StaticLogger.LogWarning("Value for 'minItems' is larger than 'maxItems', using it instead...");
 
                 maxItems = minItems;
             }
@@ -154,7 +154,7 @@ namespace StoreRotationConfig.Patches
             // Fill store rotation with every item in the 'storeRotation' list.
             storeRotation.ForEach(item => shipDecorSelection.Add(item.shopSelectionNode));
 
-            Plugin.StaticLogger?.LogInfo("Store rotated!");
+            Plugin.StaticLogger.LogInfo("Store rotated!");
         }
 
         /// <summary>

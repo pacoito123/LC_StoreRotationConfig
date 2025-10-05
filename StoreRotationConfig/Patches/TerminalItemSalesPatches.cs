@@ -19,7 +19,7 @@ namespace StoreRotationConfig.Patches
         private static void SetRotationSales(Terminal __instance)
         {
             // Return if 'saleChance' setting is disabled (set to '0').
-            if (Plugin.Settings == null || Plugin.Settings.SALE_CHANCE == 0)
+            if (Plugin.Settings.SALE_CHANCE.Value == 0)
             {
                 return;
             }
@@ -27,7 +27,7 @@ namespace StoreRotationConfig.Patches
             // Return if client has not yet fully synced with the host.
             if (!NetworkManager.Singleton.IsHost && !SyncShipUnlockablesPatch.UnlockablesSynced)
             {
-                Plugin.StaticLogger?.LogInfo("Waiting for sync from server before assigning sales...");
+                Plugin.StaticLogger.LogInfo("Waiting for sync from server before assigning sales...");
 
                 return;
             }
@@ -36,24 +36,24 @@ namespace StoreRotationConfig.Patches
             Random random = new(StartOfRound.Instance.randomMapSeed + 90);
 
             // Return if no items are on sale for this rotation.
-            if (random.Next(0, 100) > Plugin.Settings.SALE_CHANCE - 1)
+            if (random.Next(0, 100) > Plugin.Settings.SALE_CHANCE.Value - 1)
             {
-                Plugin.StaticLogger?.LogInfo("No items on sale for this rotation...");
+                Plugin.StaticLogger.LogInfo("No items on sale for this rotation...");
 
                 return;
             }
 
             // Obtain values from the config file.
-            int minSaleItems = Math.Abs(Plugin.Settings.MIN_SALE_ITEMS),
-                maxSaleItems = Math.Abs(Plugin.Settings.MAX_SALE_ITEMS);
-            int minDiscount = Plugin.Settings.MIN_DISCOUNT,
-                maxDiscount = Plugin.Settings.MAX_DISCOUNT;
+            int minSaleItems = Math.Abs(Plugin.Settings.MIN_SALE_ITEMS.Value),
+                maxSaleItems = Math.Abs(Plugin.Settings.MAX_SALE_ITEMS.Value);
+            int minDiscount = Plugin.Settings.MIN_DISCOUNT.Value,
+                maxDiscount = Plugin.Settings.MAX_DISCOUNT.Value;
             // ...
 
             // Use 'minSaleItems' for 'maxSaleItems', if the former is greater than the latter.
             if (minSaleItems > maxSaleItems)
             {
-                Plugin.StaticLogger?.LogWarning("Value for 'minSaleItems' is larger than 'maxSaleItems', using it instead...");
+                Plugin.StaticLogger.LogWarning("Value for 'minSaleItems' is larger than 'maxSaleItems', using it instead...");
 
                 maxSaleItems = minSaleItems;
             }
@@ -61,7 +61,7 @@ namespace StoreRotationConfig.Patches
             // Use 'minSaleItems' for 'maxDiscount', if the former is greater than the latter.
             if (minDiscount > maxDiscount)
             {
-                Plugin.StaticLogger?.LogWarning("Value for 'minDiscount' is larger than 'maxDiscount', using it instead...");
+                Plugin.StaticLogger.LogWarning("Value for 'minDiscount' is larger than 'maxDiscount', using it instead...");
 
                 maxDiscount = minDiscount;
             }
@@ -72,7 +72,7 @@ namespace StoreRotationConfig.Patches
             // Return if no items are on sale for this rotation.
             if (itemsOnSale <= 0)
             {
-                Plugin.StaticLogger?.LogInfo("No items on sale for this rotation...");
+                Plugin.StaticLogger.LogInfo("No items on sale for this rotation...");
 
                 return;
             }
@@ -90,7 +90,7 @@ namespace StoreRotationConfig.Patches
                 int discount = random.Next(minDiscount, maxDiscount + 1);
 
                 // Round discount to the nearest ten (like the regular store) if the 'roundToNearestTen' setting is enabled.
-                if (Plugin.Settings.ROUND_TO_NEAREST_TEN)
+                if (Plugin.Settings.ROUND_TO_NEAREST_TEN.Value)
                 {
                     discount = (int)Math.Round(discount / 10.0f) * 10;
                 }
@@ -103,7 +103,7 @@ namespace StoreRotationConfig.Patches
                 storeRotation.RemoveAt(index);
             }
 
-            Plugin.StaticLogger?.LogInfo($"{CountSales()} items on sale!");
+            Plugin.StaticLogger.LogInfo($"{CountSales()} items on sale!");
         }
 
         /// <summary>
@@ -144,7 +144,7 @@ namespace StoreRotationConfig.Patches
                     UnlockableItem? item = StartOfRound.Instance.unlockablesList.unlockables[node.shipUnlockableID];
 
                     // Return if 'salesChance' is disabled OR the 'RotationSales' dictionary doesn't contain a discount for the currently selected item.
-                    if (Plugin.Settings == null || Plugin.Settings.SALE_CHANCE == 0 || !IsOnSale(item.shopSelectionNode))
+                    if (Plugin.Settings == null || Plugin.Settings.SALE_CHANCE.Value == 0 || !IsOnSale(item.shopSelectionNode))
                     {
                         return totalCostOfItems;
                     }
@@ -152,7 +152,7 @@ namespace StoreRotationConfig.Patches
                     // Obtain discounted item price and discount value.
                     int price = GetDiscountedPrice(item.shopSelectionNode, out int discount);
 
-                    Plugin.StaticLogger?.LogDebug($"Applying discount of {discount}% to '{item.shopSelectionNode.creatureName}'...");
+                    Plugin.StaticLogger.LogDebug($"Applying discount of {discount}% to '{item.shopSelectionNode.creatureName}'...");
 
                     // Apply discount to the total cost of the purchase.
                     return price;
@@ -186,12 +186,12 @@ namespace StoreRotationConfig.Patches
             .SetInstructionAndAdvance(Transpilers.EmitDelegate((TerminalNode item) =>
                 {
                     // Return string containing full cost if 'salesChance' is disabled OR the item about to be displayed isn't currently on sale.
-                    if (Plugin.Settings == null || Plugin.Settings.SALE_CHANCE == 0 || !IsOnSale(item, out int discount))
+                    if (Plugin.Settings == null || Plugin.Settings.SALE_CHANCE.Value == 0 || !IsOnSale(item, out int discount))
                     {
                         return $"{item.itemCost}";
                     }
 
-                    Plugin.StaticLogger?.LogDebug($"Appending sale tag of '{discount}%' to {item.creatureName}...");
+                    Plugin.StaticLogger.LogDebug($"Appending sale tag of '{discount}%' to {item.creatureName}...");
 
                     // Return string containing the discounted price and discount amount to display in the store page. 
                     return GetTerminalString(item);
