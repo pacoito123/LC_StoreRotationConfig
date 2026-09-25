@@ -11,12 +11,11 @@ namespace StoreRotationConfig.Patches
     /// <summary>
     ///     Patches for adding sales to the store rotation.
     /// </summary>
-    [HarmonyPatch(typeof(Terminal))]
-    internal class TerminalItemSalesPatches
+    internal static class TerminalItemSalesPatches
     {
-        [HarmonyPatch(nameof(Terminal.RotateShipDecorSelection))]
+        [HarmonyPatch(typeof(Terminal), nameof(Terminal.RotateShipDecorSelection))]
         [HarmonyPostfix]
-        private static void SetRotationSales(Terminal __instance)
+        private static void SetRotationSales_Postfix(Terminal __instance)
         {
             // Return if 'saleChance' setting is disabled (set to '0').
             if (Plugin.Settings.SALE_CHANCE.Value == 0)
@@ -27,7 +26,7 @@ namespace StoreRotationConfig.Patches
             // Return if client has not yet fully synced with the host.
             if (!NetworkManager.Singleton.IsHost && !SyncShipUnlockablesPatch.UnlockablesSynced)
             {
-                Plugin.StaticLogger.LogInfo("Waiting for sync from server before assigning sales...");
+                Plugin.Logger.LogInfo("Waiting for sync from server before assigning sales...");
 
                 return;
             }
@@ -38,7 +37,7 @@ namespace StoreRotationConfig.Patches
             // Return if no items are on sale for this rotation.
             if (random.Next(0, 100) > Plugin.Settings.SALE_CHANCE.Value - 1)
             {
-                Plugin.StaticLogger.LogInfo("No items on sale for this rotation...");
+                Plugin.Logger.LogInfo("No items on sale for this rotation...");
 
                 return;
             }
@@ -53,7 +52,7 @@ namespace StoreRotationConfig.Patches
             // Use 'minSaleItems' for 'maxSaleItems', if the former is greater than the latter.
             if (minSaleItems > maxSaleItems)
             {
-                Plugin.StaticLogger.LogWarning("Value for 'minSaleItems' is larger than 'maxSaleItems', using it instead...");
+                Plugin.Logger.LogWarning("Value for 'minSaleItems' is larger than 'maxSaleItems', using it instead...");
 
                 maxSaleItems = minSaleItems;
             }
@@ -61,7 +60,7 @@ namespace StoreRotationConfig.Patches
             // Use 'minSaleItems' for 'maxDiscount', if the former is greater than the latter.
             if (minDiscount > maxDiscount)
             {
-                Plugin.StaticLogger.LogWarning("Value for 'minDiscount' is larger than 'maxDiscount', using it instead...");
+                Plugin.Logger.LogWarning("Value for 'minDiscount' is larger than 'maxDiscount', using it instead...");
 
                 maxDiscount = minDiscount;
             }
@@ -72,13 +71,13 @@ namespace StoreRotationConfig.Patches
             // Return if no items are on sale for this rotation.
             if (itemsOnSale <= 0)
             {
-                Plugin.StaticLogger.LogInfo("No items on sale for this rotation...");
+                Plugin.Logger.LogInfo("No items on sale for this rotation...");
 
                 return;
             }
 
-            // Initialize 'RotationSales' dictionary with its capacity set to however many items are to be on sale.
-            ResetSales(itemsOnSale);
+            // Clear 'RotationSales' dictionary.
+            ClearSales();
 
             // Clone the 'Terminal.ShipDecorSelection' list for item selection.
             List<TerminalNode> storeRotation = [.. __instance.ShipDecorSelection];
@@ -103,7 +102,7 @@ namespace StoreRotationConfig.Patches
                 storeRotation.RemoveAt(index);
             }
 
-            Plugin.StaticLogger.LogInfo($"{CountSales()} items on sale!");
+            Plugin.Logger.LogInfo($"{CountSales()} items on sale!");
         }
 
         /// <summary>
@@ -118,10 +117,10 @@ namespace StoreRotationConfig.Patches
         ///     }
         /// <param name="instructions">Iterator with original IL instructions.</param>
         /// <returns>Iterator with modified IL instructions.</returns>
-        [HarmonyPatch("LoadNewNodeIfAffordable")]
+        [HarmonyPatch(typeof(Terminal), nameof(Terminal.LoadNewNodeIfAffordable))]
         [HarmonyPriority(Priority.High)]
         [HarmonyTranspiler]
-        private static IEnumerable<CodeInstruction> TerminalLoadNewNodeIfAffordableTranspiler(IEnumerable<CodeInstruction> instructions)
+        private static IEnumerable<CodeInstruction> TerminalLoadNewNodeIfAffordable_Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return new CodeMatcher(instructions).MatchForward(false,
                 new(OpCodes.Ldfld, AccessTools.Field(typeof(TerminalNode), nameof(TerminalNode.itemCost))),
@@ -152,7 +151,7 @@ namespace StoreRotationConfig.Patches
                     // Obtain discounted item price and discount value.
                     int price = GetDiscountedPrice(item.shopSelectionNode, out int discount);
 
-                    Plugin.StaticLogger.LogDebug($"Applying discount of {discount}% to '{item.shopSelectionNode.creatureName}'...");
+                    Plugin.Logger.LogDebug($"Applying discount of {discount}% to '{item.shopSelectionNode.creatureName}'...");
 
                     // Apply discount to the total cost of the purchase.
                     return price;
@@ -173,7 +172,7 @@ namespace StoreRotationConfig.Patches
         ///     }
         /// <param name="instructions">Iterator with original IL instructions.</param>
         /// <returns>Iterator with modified IL instructions.</returns>
-        [HarmonyPatch("TextPostProcess")]
+        [HarmonyPatch(typeof(Terminal), nameof(Terminal.TextPostProcess))]
         [HarmonyTranspiler]
         private static IEnumerable<CodeInstruction> TextPostProcessTranspiler(IEnumerable<CodeInstruction> instructions)
         {
@@ -191,7 +190,7 @@ namespace StoreRotationConfig.Patches
                         return $"{item.itemCost}";
                     }
 
-                    Plugin.StaticLogger.LogDebug($"Appending sale tag of '{discount}%' to {item.creatureName}...");
+                    Plugin.Logger.LogDebug($"Appending sale tag of '{discount}%' to {item.creatureName}...");
 
                     // Return string containing the discounted price and discount amount to display in the store page. 
                     return GetTerminalString(item);

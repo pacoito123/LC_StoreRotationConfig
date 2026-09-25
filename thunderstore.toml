@@ -1,0 +1,44 @@
+[config]
+schemaVersion = "0.0.1"
+
+[package]
+namespace = "pacoito"
+name = "StoreRotationConfig"
+description = "[v81!] Configure the number of items in each store rotation, show them all, remove purchases, sort them, and/or enable sales for them. Also includes a fix for the terminal scrolling too far and skipping lines."
+websiteUrl = "https://github.com/pacoito123/LC_StoreRotationConfig"
+containsNsfwContent = false
+
+[package.dependencies]
+BepInEx-BepInExPack = "5.4.2305"
+
+[build]
+icon = "./icon.png"
+readme = "./README.md"
+outdir = "./StoreRotationConfig/dist"
+
+[[build.copy]]
+source = "./StoreRotationConfig/bin/Release/netstandard2.1/StoreRotationConfig.dll"
+target = "./BepInEx/plugins/"
+
+[[build.copy]]
+source = "./StoreRotationConfig/bin/Release/netstandard2.1/StoreRotationConfig.deps.json"
+target = "./BepInEx/plugins/"
+
+[[build.copy]]
+source = "./StoreRotationConfig/bin/Release/netstandard2.1/StoreRotationConfig.xml"
+target = "./BepInEx/plugins/"
+
+[[build.copy]]
+source = "./CHANGELOG.md"
+target = "./"
+
+[[build.copy]]
+source = "./LICENSE"
+target = "./"
+
+[publish]
+repository = "https://thunderstore.io"
+communities = [ "lethal-company" ]
+
+[publish.categories]
+lethal-company = [ "mods", "misc", "bepinex", "clientside", "serverside", "tweaks-and-quality-of-life" ]

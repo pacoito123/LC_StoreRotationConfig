@@ -11,14 +11,13 @@ namespace StoreRotationConfig.Patches
     /// <summary>
     ///     Patch for 'PlayerControllerB.ScrollMouse_performed()' method; overrides vanilla scroll amount if the 'relativeScroll' setting is enabled.
     /// </summary>
-    [HarmonyPatch(typeof(PlayerControllerB), "ScrollMouse_performed", typeof(InputAction.CallbackContext))]
-    internal class TerminalScrollMousePatch
+    internal static class TerminalScrollMousePatch
     {
         // Text shown in the current terminal page, to determine if scroll amount needs to be updated.
-        public static string CurrentText { get; internal set; } = "";
+        public static string CurrentText { get; internal set; } = string.Empty;
 
         // Amount to add/subtract from the terminal scrollbar, relative to the number of lines in the current terminal page.
-        private static float scrollAmount = 1 / 3f;
+        private static float scrollAmount = 1 / 3.0f;
 
         /// <summary>
         ///     Handles mouse scrolling while the terminal is open.
@@ -37,7 +36,7 @@ namespace StoreRotationConfig.Patches
             }
 
             // Check if text currently shown in the terminal has changed, to avoid calculating the scroll amount more than once.
-            if (string.CompareOrdinal(Plugin.Terminal.currentText, CurrentText) != 0)
+            if (!string.Equals(Plugin.Terminal.currentText, CurrentText, System.StringComparison.Ordinal))
             {
                 // Cache text currently shown in the terminal.
                 CurrentText = Plugin.Terminal.currentText;
@@ -46,7 +45,7 @@ namespace StoreRotationConfig.Patches
                 int numLines = CurrentText.Count(c => c.Equals('\n')) + 1;
                 scrollAmount = Plugin.Settings.LINES_TO_SCROLL.Value / (float)numLines;
 
-                Plugin.StaticLogger.LogDebug($"Setting terminal scroll amount to '{scrollAmount}'!");
+                Plugin.Logger.LogDebug($"Setting terminal scroll amount to '{scrollAmount}'!");
             }
 
             // Increment terminal scrollbar value by the relative scroll amount, in the direction given by the mouse wheel input.
@@ -65,7 +64,8 @@ namespace StoreRotationConfig.Patches
         ///     this.terminalScrollVertical.value += num / 3f;
         /// <param name="instructions">Iterator with original IL instructions.</param>
         /// <returns>Iterator with modified IL instructions.</returns>
-        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        [HarmonyPatch(typeof(PlayerControllerB), nameof(PlayerControllerB.ScrollMouse_performed), typeof(InputAction.CallbackContext))]
+        private static IEnumerable<CodeInstruction> ScrollMousePerformed_Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return new CodeMatcher(instructions).MatchForward(false,
                 new(OpCodes.Ldarg_0),

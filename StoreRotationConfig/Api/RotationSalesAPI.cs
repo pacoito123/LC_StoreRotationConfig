@@ -11,7 +11,7 @@ namespace StoreRotationConfig.Api
         /// <summary>
         ///     Cached dictionary of discount values to apply, using the respective items' nodes as keys.
         /// </summary>
-        private static Dictionary<TerminalNode, int>? RotationSales { get; set; }
+        private static Dictionary<TerminalNode, int> RotationSales => field ??= [];
 
         /// <summary>
         ///     Check if a rotating store item has a discount assigned.
@@ -117,12 +117,11 @@ namespace StoreRotationConfig.Api
         }
 
         /// <summary>
-        ///     Initialize new 'RotationSales' dictionary, with its initial capacity set to however many items are to be on sale.
+        ///     Clear 'RotationSales' dictionary.
         /// </summary>
-        /// <param name="itemsOnSale">The number of rotating store items about to go on sale, with a minimum of '1'.</param>
-        public static void ResetSales(int itemsOnSale)
+        public static void ClearSales()
         {
-            RotationSales = new((itemsOnSale > 0) ? itemsOnSale : 1);
+            RotationSales.Clear();
         }
 
         /// <summary>
@@ -131,7 +130,7 @@ namespace StoreRotationConfig.Api
         /// <returns>The number of rotating items on sale.</returns>
         public static int CountSales()
         {
-            return RotationSales?.Count ?? 0;
+            return RotationSales.Count;
         }
     }
 }

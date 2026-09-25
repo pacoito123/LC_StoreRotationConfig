@@ -1,8 +1,5 @@
 using BepInEx.Configuration;
-using HarmonyLib;
 using StoreRotationConfig.Patches;
-using System.Collections.Generic;
-using System.Reflection;
 
 namespace StoreRotationConfig
 {
@@ -136,32 +133,14 @@ namespace StoreRotationConfig
             // ...
 
             // Reset cached text if 'linesToScroll' is updated in-game.
-            LINES_TO_SCROLL.SettingChanged += new((_, _) =>
-            {
-                TerminalScrollMousePatch.CurrentText = "";
-            });
+            LINES_TO_SCROLL.SettingChanged += new((_, _) => TerminalScrollMousePatch.CurrentText = string.Empty);
 
             // Remove old config settings.
-            ClearOrphanedEntries(cfg);
+            cfg.OrphanedEntries.Clear();
 
             // Re-enable saving and save config.
             cfg.SaveOnConfigSet = true;
             cfg.Save();
-        }
-
-        /// <summary>
-        ///     Remove old (orphaned) configuration entries.
-        /// </summary>
-        /// <remarks>Obtained from: https://lethal.wiki/dev/intermediate/custom-configs#better-configuration</remarks>
-        /// <param name="config">The config file to clear orphaned entries from.</param>
-        private static void ClearOrphanedEntries(ConfigFile config)
-        {
-            // Obtain 'OrphanedEntries' dictionary from ConfigFile through reflection.
-            PropertyInfo orphanedEntriesProp = AccessTools.Property(typeof(ConfigFile), "OrphanedEntries");
-            Dictionary<ConfigDefinition, string>? orphanedEntries = (Dictionary<ConfigDefinition, string>?)orphanedEntriesProp.GetValue(config);
-
-            // Clear orphaned entries.
-            orphanedEntries?.Clear();
         }
     }
 }

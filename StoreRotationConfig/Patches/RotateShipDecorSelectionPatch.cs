@@ -12,8 +12,7 @@ namespace StoreRotationConfig.Patches
     /// <summary>
     ///     Patch for 'Terminal.RotateShipDecorSelection()' method; overrides vanilla method, but should functionally be the same.
     /// </summary>
-    [HarmonyPatch(typeof(Terminal), methodName: nameof(Terminal.RotateShipDecorSelection))]
-    internal class RotateShipDecorSelectionPatch
+    internal static class RotateShipDecorSelectionPatch
     {
         /// <summary>
         ///     Fills 'Terminal.ShipDecorSelection' list with items, reading from the configuration file.
@@ -25,7 +24,7 @@ namespace StoreRotationConfig.Patches
             // Return if client has not yet fully synced with the host.
             if (!NetworkManager.Singleton.IsHost && !SyncShipUnlockablesPatch.UnlockablesSynced)
             {
-                Plugin.StaticLogger.LogInfo("Waiting for sync from server before rotating store...");
+                Plugin.Logger.LogInfo("Waiting for sync from server before rotating store...");
 
                 return;
             }
@@ -33,7 +32,7 @@ namespace StoreRotationConfig.Patches
             // Return if config file instance is null, just in case.
             if (Plugin.Settings == null)
             {
-                Plugin.StaticLogger.LogError("Configuration could not be loaded or is missing; rotating store won't work.");
+                Plugin.Logger.LogError("Configuration could not be loaded or is missing; rotating store won't work.");
 
                 return;
             }
@@ -65,7 +64,7 @@ namespace StoreRotationConfig.Patches
                         condition: item => item.shopSelectionNode != null && whitelist.Contains(item.shopSelectionNode.creatureName),
                         action: AddPermanentItem);
 
-                    Plugin.StaticLogger.LogInfo($"{PermanentItems.Count} items permanently added to the rotating store!");
+                    Plugin.Logger.LogInfo($"{PermanentItems.Count} items permanently added to the rotating store!");
                 }
 
                 // Check if there is a blacklist specified in the config file.
@@ -77,7 +76,7 @@ namespace StoreRotationConfig.Patches
                     // Attempt to remove items from the 'AllItems' list, if they match a blacklisted name.
                     int itemsBlacklisted = AllItems.RemoveAll(item => blacklist.Contains(item.shopSelectionNode.creatureName));
 
-                    Plugin.StaticLogger.LogInfo($"{itemsBlacklisted} items removed from the rotating store.");
+                    Plugin.Logger.LogInfo($"{itemsBlacklisted} items removed from the rotating store.");
                 }
 
                 // Check if 'stockAll' setting is enabled.
@@ -87,13 +86,13 @@ namespace StoreRotationConfig.Patches
                     if (sortItems)
                     {
                         // Sort 'AllItems' list alphabetically.
-                        AllItems.Sort((x, y) => string.Compare(x.shopSelectionNode.creatureName, y.shopSelectionNode.creatureName));
+                        AllItems.Sort((x, y) => string.Compare(x.shopSelectionNode.creatureName, y.shopSelectionNode.creatureName, StringComparison.Ordinal));
                     }
 
                     // Fill store rotation with every item in the 'AllItems' list.
                     AllItems.ForEach(item => shipDecorSelection.Add(item.shopSelectionNode));
 
-                    Plugin.StaticLogger.LogInfo($"All {AllItems.Count} items added to the store rotation!");
+                    Plugin.Logger.LogInfo($"All {AllItems.Count} items added to the store rotation!");
                 }
             }
 
@@ -103,7 +102,7 @@ namespace StoreRotationConfig.Patches
                 return;
             }
 
-            Plugin.StaticLogger.LogInfo("Rotating store...");
+            Plugin.Logger.LogInfo("Rotating store...");
 
             // Clear previous store rotation.
             shipDecorSelection.Clear();
@@ -111,7 +110,7 @@ namespace StoreRotationConfig.Patches
             // Use 'minItems' for 'maxItems', if the former is greater than the latter.
             if (minItems > maxItems)
             {
-                Plugin.StaticLogger.LogWarning("Value for 'minItems' is larger than 'maxItems', using it instead...");
+                Plugin.Logger.LogWarning("Value for 'minItems' is larger than 'maxItems', using it instead...");
 
                 maxItems = minItems;
             }
@@ -120,7 +119,7 @@ namespace StoreRotationConfig.Patches
             int numItems = (minItems != maxItems) ? random.Next(minItems, maxItems + 1) : maxItems;
 
             // Create 'storeRotation' list (for sorting), and clone the 'AllItems' list (for item selection).
-            List<UnlockableItem> storeRotation = new(numItems), allItems = [.. AllItems];
+            List<UnlockableItem> storeRotation = [with(numItems)], allItems = [.. AllItems];
 
             // Check if there are permanent items to add.
             if (PermanentItems.Count > 0)
@@ -148,13 +147,13 @@ namespace StoreRotationConfig.Patches
             if (sortItems && storeRotation.Count > 1)
             {
                 // Sort 'storeRotation' list alphabetically.
-                storeRotation.Sort((x, y) => string.Compare(x.shopSelectionNode.creatureName, y.shopSelectionNode.creatureName));
+                storeRotation.Sort((x, y) => string.Compare(x.shopSelectionNode.creatureName, y.shopSelectionNode.creatureName, StringComparison.Ordinal));
             }
 
             // Fill store rotation with every item in the 'storeRotation' list.
             storeRotation.ForEach(item => shipDecorSelection.Add(item.shopSelectionNode));
 
-            Plugin.StaticLogger.LogInfo("Store rotated!");
+            Plugin.Logger.LogInfo("Store rotated!");
         }
 
         /// <summary>
@@ -169,7 +168,9 @@ namespace StoreRotationConfig.Patches
         ///     this.ShipDecorSelection.Clear();
         /// <param name="instructions">Iterator with original IL instructions.</param>
         /// <returns>Iterator with modified IL instructions.</returns>
-        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        [HarmonyPatch(typeof(Terminal), nameof(Terminal.RotateShipDecorSelection))]
+        [HarmonyTranspiler]
+        private static IEnumerable<CodeInstruction> RotateShipDecorSelection_Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return new CodeMatcher(instructions).MatchForward(false,
                 new(OpCodes.Ldarg_0),
