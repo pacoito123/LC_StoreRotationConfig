@@ -1,6 +1,7 @@
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Reflection.Emit;
 using Unity.Netcode;
 
@@ -108,13 +109,15 @@ namespace StoreRotationConfig.Patches
         /// <summary>
         ///     Applies a rotating item's discount (if it has one assigned in the current rotation) right before its purchase.
         /// </summary>
-        ///     ... (Terminal:630)
-        ///     else if (node.buyRerouteToMoon != -1 || node.shipUnlockableID != -1)
-        ///     {
-        ///         this.totalCostOfItems = node.itemCost;
-        ///         
-        ///         -> this.totalCostOfItems = call(node, this.totalCostOfItems);
-        ///     }
+        /// <remarks>
+        ///     <code>
+        ///         else if (node.buyRerouteToMoon != -1 || node.shipUnlockableID != -1)
+        ///         {
+        ///             this.totalCostOfItems = node.itemCost;
+        ///             -> this.totalCostOfItems = TerminalItemSalesPatches.ApplyDiscount(node, this.totalCostOfItems);
+        ///         }
+        ///     </code>
+        /// </remarks>
         /// <param name="instructions">Iterator with original IL instructions.</param>
         /// <returns>Iterator with modified IL instructions.</returns>
         [HarmonyPatch(typeof(Terminal), nameof(Terminal.LoadNewNodeIfAffordable))]
@@ -122,81 +125,125 @@ namespace StoreRotationConfig.Patches
         [HarmonyTranspiler]
         private static IEnumerable<CodeInstruction> TerminalLoadNewNodeIfAffordable_Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return new CodeMatcher(instructions).MatchForward(false,
-                new(OpCodes.Ldfld, AccessTools.Field(typeof(TerminalNode), nameof(TerminalNode.itemCost))),
-                new(OpCodes.Stfld, AccessTools.Field(typeof(Terminal), "totalCostOfItems")))
-            .Advance(2)
-            .InsertAndAdvance(
+            FieldInfo itemCostInfo = typeof(TerminalNode).GetField(nameof(TerminalNode.itemCost), BindingFlags.Instance | BindingFlags.Public);
+            FieldInfo totalCostOfItemsInfo = typeof(Terminal).GetField(nameof(Terminal.totalCostOfItems), BindingFlags.Instance | BindingFlags.NonPublic);
+            CodeMatcher codeMatcher = new CodeMatcher(instructions).MatchForward(useEnd: true,
                 new(OpCodes.Ldarg_0),
                 new(OpCodes.Ldarg_1),
+                new(OpCodes.Ldfld, itemCostInfo),
+                new(OpCodes.Stfld, totalCostOfItemsInfo));
+
+            if (codeMatcher.Advance(1).IsInvalid)
+            {
+                Plugin.Logger.LogError("Could not match Terminal 'totalCostOfItems' field assignment.");
+
+                return instructions;
+            }
+
+            MethodInfo applyDiscountInfo = typeof(TerminalItemSalesPatches).GetMethod(nameof(ApplyDiscount), BindingFlags.Static | BindingFlags.NonPublic);
+            return codeMatcher.Insert(
+                new(OpCodes.Ldarg_1),
                 new(OpCodes.Ldarg_0),
-                new(OpCodes.Ldfld, AccessTools.Field(typeof(Terminal), "totalCostOfItems")))
-            .InsertAndAdvance(Transpilers.EmitDelegate((TerminalNode node, int totalCostOfItems) =>
-                {
-                    // Leave total cost of purchase unchanged if routing to a moon.
-                    if (node.buyRerouteToMoon != -1)
-                    {
-                        return totalCostOfItems;
-                    }
-
-                    // Obtain item currently selected for purchase.
-                    UnlockableItem? item = StartOfRound.Instance.unlockablesList.unlockables[node.shipUnlockableID];
-
-                    // Return if 'salesChance' is disabled OR the 'RotationSales' dictionary doesn't contain a discount for the currently selected item.
-                    if (Plugin.Settings == null || Plugin.Settings.SALE_CHANCE.Value == 0 || !IsOnSale(item.shopSelectionNode))
-                    {
-                        return totalCostOfItems;
-                    }
-
-                    // Obtain discounted item price and discount value.
-                    int price = GetDiscountedPrice(item.shopSelectionNode, out int discount);
-
-                    Plugin.Logger.LogDebug($"Applying discount of {discount}% to '{item.shopSelectionNode.creatureName}'...");
-
-                    // Apply discount to the total cost of the purchase.
-                    return price;
-                }))
-            .Insert(new CodeInstruction(OpCodes.Stfld, AccessTools.Field(typeof(Terminal), "totalCostOfItems")))
+                new(OpCodes.Ldflda, totalCostOfItemsInfo),
+                new(OpCodes.Call, applyDiscountInfo))
             .InstructionEnumeration();
+        }
+
+        private static void ApplyDiscount(TerminalNode node, ref int totalCostOfItems)
+        {
+            // Return if routing to a moon, or unlockable ID is invalid.
+            if (node.buyRerouteToMoon != -1 || StartOfRound.Instance == null || StartOfRound.Instance.unlockablesList == null
+                || StartOfRound.Instance.unlockablesList.unlockables == null || StartOfRound.Instance.unlockablesList.unlockables.Count <= node.shipUnlockableID)
+            {
+                return;
+            }
+
+            // Obtain item currently selected for purchase.
+            UnlockableItem? item = StartOfRound.Instance.unlockablesList.unlockables[node.shipUnlockableID];
+
+            // Return if selected item was not found.
+            if (item == null)
+            {
+                Plugin.Logger.LogError($"Unlockable item at index {node.shipUnlockableID} missing!");
+
+                return;
+            }
+
+            // Return if 'salesChance' is disabled OR the 'RotationSales' dictionary doesn't contain a discount for the currently selected item.
+            if (Plugin.Settings == null || Plugin.Settings.SALE_CHANCE.Value == 0 || !IsOnSale(item.shopSelectionNode))
+            {
+                return;
+            }
+
+            // Obtain discounted item price and discount value.
+            totalCostOfItems = GetDiscountedPrice(item.shopSelectionNode, out int discount);
+
+            Plugin.Logger.LogDebug($"Applying discount of {discount}% to '{item.shopSelectionNode.creatureName}'...");
         }
 
         /// <summary>
         ///     Displays rotating item discounts and their modified prices in the store page.
         /// </summary>
-        ///     ... (Terminal:344)
-        ///     for (int m = 0; m &lt; this.ShipDecorSelection.Count; m++)
-        ///     {
-        ///         stringBuilder5.Append(string.Format("\n{0}  //  ${1}", this.ShipDecorSelection[m].creatureName,
-        ///             // this.ShipDecorSelection[m].itemCost));
-        ///             -> call(this.ShipDecorSelection)));
-        ///     }
+        /// <remarks>
+        ///     <code>
+        ///         for (int m = 0; m &lt; this.ShipDecorSelection.Count; m++)
+        ///         {
+        ///             stringBuilder5.Append(string.Format("\n{0}  //  Price: ${1}", this.ShipDecorSelection[m].creatureName,
+        ///                 // this.ShipDecorSelection[m].itemCost
+        ///                 -> TerminalItemSalesPatches.AppendDiscountTag(this.ShipDecorSelection)
+        ///             ));
+        ///         }
+        ///     </code>
+        /// </remarks>
         /// <param name="instructions">Iterator with original IL instructions.</param>
         /// <returns>Iterator with modified IL instructions.</returns>
         [HarmonyPatch(typeof(Terminal), nameof(Terminal.TextPostProcess))]
         [HarmonyTranspiler]
         private static IEnumerable<CodeInstruction> TextPostProcessTranspiler(IEnumerable<CodeInstruction> instructions)
         {
-            return new CodeMatcher(instructions).MatchForward(false,
-                new(OpCodes.Ldstr, "\n{0}  //  ${1}"),
-                new(OpCodes.Ldarg_0),
-                new(OpCodes.Ldfld, AccessTools.Field(typeof(Terminal), nameof(Terminal.ShipDecorSelection))))
-            .MatchForward(false,
-                new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(TerminalNode), nameof(TerminalNode.itemCost))))
-            .SetInstructionAndAdvance(Transpilers.EmitDelegate((TerminalNode item) =>
-                {
-                    // Return string containing full cost if 'salesChance' is disabled OR the item about to be displayed isn't currently on sale.
-                    if (Plugin.Settings == null || Plugin.Settings.SALE_CHANCE.Value == 0 || !IsOnSale(item, out int discount))
-                    {
-                        return $"{item.itemCost}";
-                    }
+            CodeMatcher codeMatcher = new CodeMatcher(instructions).MatchForward(useEnd: false,
+                new(OpCodes.Ldarg_1),
+                new(OpCodes.Ldstr, "[unlockablesSelectionList]"),
+                new(OpCodes.Ldstr, "[No items available]"));
 
-                    Plugin.Logger.LogDebug($"Appending sale tag of '{discount}%' to {item.creatureName}...");
+            if (codeMatcher.IsInvalid)
+            {
+                Plugin.Logger.LogError("Could not match '[unlockablesSelectionList]' parameter in store page.");
 
-                    // Return string containing the discounted price and discount amount to display in the store page. 
-                    return GetTerminalString(item);
-                }))
-            .SetOperandAndAdvance(typeof(string))
+                return instructions;
+            }
+
+            FieldInfo itemCostInfo = typeof(TerminalNode).GetField(nameof(TerminalNode.itemCost), BindingFlags.Instance | BindingFlags.Public);
+            _ = codeMatcher.MatchForward(useEnd: false,
+                new(OpCodes.Ldfld, itemCostInfo),
+                new(OpCodes.Box, typeof(int)));
+
+            if (codeMatcher.IsInvalid)
+            {
+                Plugin.Logger.LogError("Could not match TerminalNode 'itemCost' field parameter in store page item display.");
+
+                return instructions;
+            }
+
+            MethodInfo appendDiscountTagInfo = typeof(TerminalItemSalesPatches).GetMethod(nameof(AppendDiscountTag), BindingFlags.Static | BindingFlags.NonPublic);
+            return codeMatcher.SetInstructionAndAdvance(
+                new(OpCodes.Call, appendDiscountTagInfo))
+            .RemoveInstruction()
             .InstructionEnumeration();
+        }
+
+        private static string AppendDiscountTag(TerminalNode item)
+        {
+            // Return string containing full cost if 'salesChance' is disabled OR the item about to be displayed isn't currently on sale.
+            if (Plugin.Settings == null || Plugin.Settings.SALE_CHANCE.Value == 0 || !IsOnSale(item, out int discount))
+            {
+                return $"{item.itemCost}";
+            }
+
+            Plugin.Logger.LogDebug($"Appending sale tag of '{discount}%' to {item.creatureName}...");
+
+            // Return string containing the discounted price and discount amount to display in the store page. 
+            return GetTerminalString(item);
         }
     }
 }

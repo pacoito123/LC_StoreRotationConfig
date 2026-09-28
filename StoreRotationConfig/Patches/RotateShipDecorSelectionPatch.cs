@@ -2,6 +2,7 @@ using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using Unity.Netcode;
 
@@ -159,30 +160,44 @@ namespace StoreRotationConfig.Patches
         /// <summary>
         ///     Inserts a call to 'RotateShipDecorSelectionPatch.RotateShipDecorSelection()', followed by a return instruction.
         /// </summary>
-        ///     ... (Terminal:1564)
-        ///     Random random = new Random(StartOfRound.Instance.randomMapSeed + 65);
-        ///     
-        ///     -> StoreRotationConfig.Patches.RotateShipDecorSelectionPatch.RotateShipDecorSelection(this.ShipDecorSelection, random);
-        ///     -> return;
-        ///     
-        ///     this.ShipDecorSelection.Clear();
+        /// <remarks>
+        ///     <code>
+        ///         Random random = new Random(StartOfRound.Instance.randomMapSeed + 65);
+        /// 
+        ///         -> RotateShipDecorSelection(this.ShipDecorSelection, random);
+        ///         -> return;
+        /// 
+        ///         this.ShipDecorSelection.Clear();
+        ///     </code>
+        /// </remarks>
         /// <param name="instructions">Iterator with original IL instructions.</param>
         /// <returns>Iterator with modified IL instructions.</returns>
         [HarmonyPatch(typeof(Terminal), nameof(Terminal.RotateShipDecorSelection))]
         [HarmonyTranspiler]
         private static IEnumerable<CodeInstruction> RotateShipDecorSelection_Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return new CodeMatcher(instructions).MatchForward(false,
+            FieldInfo shipDecorSelectionInfo = typeof(Terminal).GetField(nameof(Terminal.ShipDecorSelection), BindingFlags.Instance | BindingFlags.Public);
+            MethodInfo listClearInfo = typeof(List<TerminalNode>).GetMethod(nameof(List<>.Clear), BindingFlags.Instance | BindingFlags.Public);
+            CodeMatcher codeMatcher = new CodeMatcher(instructions).MatchForward(useEnd: false,
                 new(OpCodes.Ldarg_0),
-                new(OpCodes.Ldfld, AccessTools.Field(typeof(Terminal), nameof(Terminal.ShipDecorSelection))),
-                new(OpCodes.Callvirt, AccessTools.Method(typeof(List<TerminalNode>), nameof(List<>.Clear))))
-            .Insert(
+                new(OpCodes.Ldfld, shipDecorSelectionInfo),
+                new(OpCodes.Callvirt, listClearInfo));
+
+            if (codeMatcher.IsInvalid)
+            {
+                Plugin.Logger.LogError("Could not match Terminal 'ShipDecorSelection' List clearing.");
+
+                return instructions;
+            }
+
+            MethodInfo rotateShipDecorSelectionPatchInfo = typeof(RotateShipDecorSelectionPatch).GetMethod(nameof(RotateShipDecorSelection), BindingFlags.Static | BindingFlags.NonPublic);
+            return codeMatcher.Insert(
                 new(OpCodes.Ldarg_0),
-                new(OpCodes.Ldfld, AccessTools.Field(typeof(Terminal), nameof(Terminal.ShipDecorSelection))),
+                new(OpCodes.Ldfld, shipDecorSelectionInfo),
                 new(OpCodes.Ldloc_0),
-                new(OpCodes.Call, AccessTools.Method(typeof(RotateShipDecorSelectionPatch), nameof(RotateShipDecorSelection))),
-                new(OpCodes.Ret)
-            ).InstructionEnumeration();
+                new(OpCodes.Call, rotateShipDecorSelectionPatchInfo),
+                new(OpCodes.Ret))
+            .InstructionEnumeration();
         }
     }
 }

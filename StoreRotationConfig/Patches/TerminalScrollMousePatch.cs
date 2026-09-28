@@ -2,6 +2,7 @@ using GameNetcodeStuff;
 using HarmonyLib;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -55,26 +56,39 @@ namespace StoreRotationConfig.Patches
         /// <summary>
         ///     Inserts a call to 'TerminalScrollMousePatch.ScrollMouse_performed()', followed by a return instruction.
         /// </summary>
-        ///     ... (GameNetcodeStuff.PlayerControllerB:1263)
-        ///     float num = context.ReadValue();
-        ///     
-        ///     -> StoreRotationConfig.Patches.TerminalScrollMousePatch.ScrollMouse_performed(this.terminalScrollVertical, num);
-        ///     -> return;
-        ///     
-        ///     this.terminalScrollVertical.value += num / 3f;
+        /// <remarks>
+        ///     <code>
+        ///         float num = context.ReadValue();
+        /// 
+        ///         -> TerminalScrollMousePatch.ScrollMouse_performed(this.terminalScrollVertical, num);
+        ///         -> return;
+        /// 
+        ///         this.terminalScrollVertical.value += num / 3f;
+        ///     </code>
+        /// </remarks>
         /// <param name="instructions">Iterator with original IL instructions.</param>
         /// <returns>Iterator with modified IL instructions.</returns>
         [HarmonyPatch(typeof(PlayerControllerB), nameof(PlayerControllerB.ScrollMouse_performed), typeof(InputAction.CallbackContext))]
         private static IEnumerable<CodeInstruction> ScrollMousePerformed_Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            return new CodeMatcher(instructions).MatchForward(false,
+            FieldInfo terminalScrollVerticalInfo = typeof(PlayerControllerB).GetField(nameof(PlayerControllerB.terminalScrollVertical), BindingFlags.Instance | BindingFlags.Public);
+            CodeMatcher codeMatcher = new CodeMatcher(instructions).MatchForward(useEnd: false,
                 new(OpCodes.Ldarg_0),
-                new(OpCodes.Ldfld, AccessTools.Field(typeof(PlayerControllerB), nameof(PlayerControllerB.terminalScrollVertical))))
-            .Insert(
+                new(OpCodes.Ldfld, terminalScrollVerticalInfo));
+
+            if (codeMatcher.IsInvalid)
+            {
+                Plugin.Logger.LogError("Could not match Player 'terminalScrollVertical' field.");
+
+                return instructions;
+            }
+
+            MethodInfo patchScrollMousePerformedInfo = typeof(TerminalScrollMousePatch).GetMethod(nameof(ScrollMouse_performed), BindingFlags.Static | BindingFlags.NonPublic);
+            return codeMatcher.Insert(
                 new(OpCodes.Ldarg_0),
-                new(OpCodes.Ldfld, AccessTools.Field(typeof(PlayerControllerB), nameof(PlayerControllerB.terminalScrollVertical))),
+                new(OpCodes.Ldfld, terminalScrollVerticalInfo),
                 new(OpCodes.Ldloc_0),
-                new(OpCodes.Call, AccessTools.Method(typeof(TerminalScrollMousePatch), nameof(ScrollMouse_performed))),
+                new(OpCodes.Call, patchScrollMousePerformedInfo),
                 new(OpCodes.Ret))
             .InstructionEnumeration();
         }
