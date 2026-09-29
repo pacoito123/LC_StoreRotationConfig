@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
-using Unity.Netcode;
 
 using static StoreRotationConfig.Api.RotationSalesAPI;
 
@@ -18,17 +17,14 @@ namespace StoreRotationConfig.Patches
         [HarmonyPostfix]
         private static void SetRotationSales_Postfix(Terminal __instance)
         {
-            // Return if 'saleChance' setting is disabled (set to '0').
-            if (Plugin.Settings.SALE_CHANCE.Value == 0)
+            if (!__instance.IsHost)
             {
                 return;
             }
 
-            // Return if client has not yet fully synced with the host.
-            if (!NetworkManager.Singleton.IsHost && !SyncShipUnlockablesPatch.UnlockablesSynced)
+            // Return if 'saleChance' setting is disabled (set to '0').
+            if (Plugin.Settings.SALE_CHANCE.Value == 0)
             {
-                Plugin.Logger.LogInfo("Waiting for sync from server before assigning sales...");
-
                 return;
             }
 

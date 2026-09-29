@@ -1,4 +1,5 @@
 using HarmonyLib;
+using StoreRotationConfig.Networking;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,22 +12,19 @@ using static StoreRotationConfig.Api.RotationItemsAPI;
 namespace StoreRotationConfig.Patches
 {
     /// <summary>
-    ///     Patch for 'Terminal.RotateShipDecorSelection()' method; overrides vanilla method, but should functionally be the same.
+    ///     Patch for <c>Terminal.RotateShipDecorSelection()</c> method; overrides vanilla method, but should functionally be the same.
     /// </summary>
     internal static class RotateShipDecorSelectionPatch
     {
         /// <summary>
-        ///     Fills 'Terminal.ShipDecorSelection' list with items, reading from the configuration file.
+        ///     Fills <c>Terminal.ShipDecorSelection</c> list with items, reading from the configuration file.
         /// </summary>
         /// <param name="shipDecorSelection">List containing items currently in the store rotation.</param>
-        /// <param name="random">Seeded 'Random' instance used for generating a new store rotation.</param>
+        /// <param name="random">Seeded <c>Random</c> instance used for generating a new store rotation.</param>
         private static void RotateShipDecorSelection(List<TerminalNode> shipDecorSelection, Random random)
         {
-            // Return if client has not yet fully synced with the host.
-            if (!NetworkManager.Singleton.IsHost && !SyncShipUnlockablesPatch.UnlockablesSynced)
+            if (!NetworkManager.Singleton.IsHost)
             {
-                Plugin.Logger.LogInfo("Waiting for sync from server before rotating store...");
-
                 return;
             }
 
@@ -91,7 +89,16 @@ namespace StoreRotationConfig.Patches
                     }
 
                     // Fill store rotation with every item in the 'AllItems' list.
-                    AllItems.ForEach(item => shipDecorSelection.Add(item.shopSelectionNode));
+                    if (StoreRotationNetworker.Instance != null)
+                    {
+                        StoreRotationNetworker.Instance.StoreRotation.Clear();
+
+                        foreach (UnlockableItem item in AllItems)
+                        {
+                            StoreRotationNetworker.Instance.StoreRotation.Add(item);
+                        }
+                    }
+                    // ...
 
                     Plugin.Logger.LogInfo($"All {AllItems.Count} items added to the store rotation!");
                 }
@@ -152,9 +159,16 @@ namespace StoreRotationConfig.Patches
             }
 
             // Fill store rotation with every item in the 'storeRotation' list.
-            storeRotation.ForEach(item => shipDecorSelection.Add(item.shopSelectionNode));
+            if (StoreRotationNetworker.Instance != null)
+            {
+                StoreRotationNetworker.Instance.StoreRotation.Clear();
 
-            Plugin.Logger.LogInfo("Store rotated!");
+                foreach (UnlockableItem item in storeRotation)
+                {
+                    StoreRotationNetworker.Instance.StoreRotation.Add(item);
+                }
+            }
+            // ...
         }
 
         /// <summary>

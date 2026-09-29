@@ -1,8 +1,10 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
+using StoreRotationConfig.Networking;
 using StoreRotationConfig.Patches;
 using System;
+using Unity.Netcode;
 using UnityEngine;
 
 namespace StoreRotationConfig
@@ -26,7 +28,7 @@ namespace StoreRotationConfig
         public static Config Settings { get; private set; } = null!;
 
         /// <summary>
-        ///     Cached terminal instance.
+        ///     Cached <c>Terminal</c> instance.
         /// </summary>
         public static Terminal Terminal
         {
@@ -48,7 +50,8 @@ namespace StoreRotationConfig
                 // Initialize 'Config' instance.
                 Settings = new(Config);
 
-                // Harmony.PatchAll(typeof(NetworkingInitPatches));
+                SerializeNetworkVariables();
+                Harmony.PatchAll(typeof(NetworkingInitPatches));
 
                 // Apply all patches.
                 Harmony.PatchAll(typeof(RotateShipDecorSelectionPatch));
@@ -64,6 +67,12 @@ namespace StoreRotationConfig
             {
                 Logger.LogError($"Error while initializing '{PLUGIN_NAME}': {e}");
             }
+        }
+
+        private static void SerializeNetworkVariables()
+        {
+            NetworkVariableSerializationTypes.InitializeSerializer_UnmanagedByMemcpy<StoreRotationEntry>();
+            NetworkVariableSerializationTypes.InitializeEqualityChecker_UnmanagedIEquatable<StoreRotationEntry>();
         }
     }
 }
