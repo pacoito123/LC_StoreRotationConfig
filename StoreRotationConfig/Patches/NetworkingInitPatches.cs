@@ -10,7 +10,7 @@ using StoreRotationConfig.Networking;
 namespace StoreRotationConfig.Patches
 {
     /// <summary>
-    ///     Patches for creating and spawning Networker instance.
+    ///     Patches for creating and spawning <c>StoreRotationNetworker</c> instance.
     /// </summary>
     internal static class NetworkingInitPatches
     {
@@ -32,7 +32,7 @@ namespace StoreRotationConfig.Patches
                     }
                     catch (Exception e)
                     {
-                        Plugin.Logger.LogError($"Could not override default networker hash: {e}");
+                        Plugin.Logger.LogError($"Could not override default Networker hash: {e}");
                     }
 
                     field = networkerContainer.AddComponent<StoreRotationNetworker>();
@@ -40,13 +40,12 @@ namespace StoreRotationConfig.Patches
 
                 return field;
             }
-            private set;
         }
 
-        [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.Awake))]
+        [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.Start))]
         [HarmonyWrapSafe]
         [HarmonyPrefix]
-        private static void StartOfRoundAwake_Prefix(StartOfRound __instance)
+        private static void StartOfRoundStart_Prefix(StartOfRound __instance)
         {
             if (!__instance.NetworkManager.IsHost)
             {
@@ -55,7 +54,7 @@ namespace StoreRotationConfig.Patches
 
             if (NetworkerPrefab == null)
             {
-                Plugin.Logger.LogError("Networker prefab is missing and could not be created; mod won't be able to do anything!");
+                Plugin.Logger.LogError("Networker prefab is missing and could not be created! Store rotations won't work...");
 
                 return;
             }
@@ -81,12 +80,12 @@ namespace StoreRotationConfig.Patches
 
             if (NetworkerPrefab == null)
             {
-                Plugin.Logger.LogError("Networker prefab is missing and could not be created; mod won't be able to do anything!");
+                Plugin.Logger.LogError("Networker prefab is missing and could not be created! Store rotations won't work...");
 
                 return;
             }
 
-            if (networkManager.NetworkConfig?.Prefabs.Contains(NetworkerPrefab.gameObject) == true)
+            if (networkManager.NetworkConfig?.Prefabs?.Contains(NetworkerPrefab.gameObject) == false)
             {
                 networkManager.AddNetworkPrefab(NetworkerPrefab.gameObject);
             }

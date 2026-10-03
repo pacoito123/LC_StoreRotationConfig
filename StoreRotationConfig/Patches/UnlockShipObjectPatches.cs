@@ -1,6 +1,7 @@
 using HarmonyLib;
-
-using static StoreRotationConfig.Api.RotationItemsAPI;
+using StoreRotationConfig.Networking;
+using System.Collections.Generic;
+using Unity.Netcode;
 
 namespace StoreRotationConfig.Patches
 {
@@ -9,74 +10,48 @@ namespace StoreRotationConfig.Patches
     /// </summary>
     internal static class UnlockShipObjectPatches
     {
-        /// <summary>
-        ///     Remove an item from current and future store rotations, and also from the list of permanent items.
-        /// </summary>
-        /// <param name="item">'UnlockableItem' instance of the item to remove.</param>
-        /// <param name="unlockableID">The ID of the item to remove (only used for logging).</param>
-        private static void RemoveFromRotation(UnlockableItem? item, int unlockableID = -1)
-        {
-            // Return if item OR its shop node does not exist.
-            if (item == null || item.shopSelectionNode == null)
-            {
-                Plugin.Logger.LogWarning($"Item #{unlockableID} and/or its terminal node could not be found.");
-
-                return;
-            }
-
-            Plugin.Logger.LogDebug($"Attempting to remove item '{item.unlockableName}' from the store rotation on local client...");
-
-            // Attempt to remove item from the 'RotateShipDecorSelectionPatch.PermanentItems' list.
-            if (RemovePermanentItem(item))
-            {
-                Plugin.Logger.LogDebug($"Removed item '{item.shopSelectionNode.creatureName}' from the list of permanent items.");
-            }
-
-            // Attempt to remove item from the current store rotation.
-            if (Plugin.Terminal.ShipDecorSelection.Remove(item.shopSelectionNode))
-            {
-                Plugin.Logger.LogDebug($"Removed item '{item.shopSelectionNode.creatureName}' from the current store rotation.");
-            }
-
-            // Attempt to remove item from future store rotations.
-            if (UnregisterItem(item))
-            {
-                Plugin.Logger.LogDebug($"Removed item '{item.shopSelectionNode.creatureName}' from future store rotations.");
-            }
-        }
-
-        [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.UnlockShipObject))]
+        [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.BuyShipUnlockableServerRpc))]
         [HarmonyPrefix]
-        private static void UnlockShipObject_Prefix(StartOfRound __instance, int unlockableID)
+        private static void BuyShipUnlockableServerRpc_Prefix(StartOfRound __instance, int unlockableID)
         {
-            // Return if not running from server, no item was successfully purchased, OR the 'removePurchased' setting is not enabled.
-            if (!__instance.IsHost || unlockableID == -1 || Plugin.Settings?.REMOVE_PURCHASED.Value == false)
+            // Only run on the server.
+            if (__instance.__rpc_exec_stage is not NetworkBehaviour.__RpcExecStage.Execute)
             {
                 return;
             }
 
-            // Attempt to remove purchased item from store rotation on server.
-            if (__instance.unlockablesList != null)
-            {
-                RemoveFromRotation(__instance.unlockablesList.unlockables[unlockableID], unlockableID);
-            }
-        }
-
-        [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.BuyShipUnlockableClientRpc))]
-        [HarmonyPrefix]
-        private static void BuyShipUnlockableClientRpc_Prefix(StartOfRound __instance, int unlockableID = -1)
-        {
-            // Return if running from server, no item was successfully purchased, OR the 'removePurchased' setting is not enabled.
-            if (__instance.IsHost || unlockableID == -1 || Plugin.Settings?.REMOVE_PURCHASED.Value == false)
+            // Return if unlockable ID is invalid, or purchased items are not configured to be removed.
+            if (unlockableID < 0 || Plugin.Settings == null || !Plugin.Settings.REMOVE_PURCHASED.Value)
             {
                 return;
             }
 
-            // Attempt to remove purchased item from store rotation on clients.
-            if (__instance.unlockablesList != null)
+            if (Plugin.Terminal == null)
             {
-                RemoveFromRotation(__instance.unlockablesList.unlockables[unlockableID], unlockableID);
+                Plugin.Logger.LogError("Could not find Terminal instance! Store rotation doesn't exist...");
+
+                return;
             }
+
+            // Obtain index in the current store rotation for the purchased item.
+            List<TerminalNode>? shipDecorSelection = Plugin.Terminal.ShipDecorSelection;
+            int rotationIndex = shipDecorSelection?.FindIndex(node => node != null && node.shipUnlockableID == unlockableID) ?? -1;
+
+            // Return if item being purchased is not present in the current store rotation.
+            if (rotationIndex < 0 || shipDecorSelection == null || rotationIndex >= shipDecorSelection.Count)
+            {
+                return;
+            }
+
+            if (StoreRotationNetworker.Instance == null || StoreRotationNetworker.Instance.StoreRotation == null)
+            {
+                Plugin.Logger.LogError("StoreRotationNetworker instance is missing! Could not remove purchased item...");
+
+                return;
+            }
+
+            // Attempt to remove purchased item from store rotation.
+            StoreRotationNetworker.Instance.StoreRotation.RemoveAt(rotationIndex);
         }
     }
 }

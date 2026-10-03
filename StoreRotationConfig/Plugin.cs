@@ -13,7 +13,7 @@ namespace StoreRotationConfig
     ///     Configure the number of items in each store rotation, show them all, remove purchases, sort them, and/or enable sales for them.
     /// </summary>
     [BepInPlugin(PLUGIN_GUID, PLUGIN_NAME, VERSION)]
-    public class Plugin : BaseUnityPlugin
+    public sealed class Plugin : BaseUnityPlugin
     {
         /// <summary>
         ///     BepInEx Plugin information.
@@ -25,12 +25,12 @@ namespace StoreRotationConfig
         /// <summary>
         ///     Plugin configuration instance.
         /// </summary>
-        public static Config Settings { get; private set; } = null!;
+        public static Config? Settings { get; private set; }
 
         /// <summary>
         ///     Cached <c>Terminal</c> instance.
         /// </summary>
-        public static Terminal Terminal
+        public static Terminal? Terminal
         {
             get
             {
@@ -55,7 +55,6 @@ namespace StoreRotationConfig
 
                 // Apply all patches.
                 Harmony.PatchAll(typeof(RotateShipDecorSelectionPatch));
-                Harmony.PatchAll(typeof(SyncShipUnlockablesPatch));
                 Harmony.PatchAll(typeof(TerminalItemSalesPatches));
                 Harmony.PatchAll(typeof(TerminalScrollMousePatch));
                 Harmony.PatchAll(typeof(UnlockShipObjectPatches));

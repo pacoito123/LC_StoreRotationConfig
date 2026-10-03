@@ -1,13 +1,26 @@
 using BepInEx.Configuration;
 using StoreRotationConfig.Patches;
+using System;
+using System.Collections.Generic;
 
 namespace StoreRotationConfig
 {
     /// <summary>
-    ///     Class containing and defining plugin configuration options, with some entries being synced between host and clients.
+    ///     Class containing and defining plugin configuration options.
     /// </summary>
-    public class Config
+    public sealed class Config
     {
+        /// <summary>
+        ///     Set of items to always include in every store rotation.
+        /// </summary>
+        /// <remarks>Takes priority over blacklist.</remarks>
+        public HashSet<UnlockableItem> WhitelistedItems => field ??= [];
+
+        /// <summary>
+        ///     Set of items to always exclude from every store rotation.
+        /// </summary>
+        public HashSet<UnlockableItem> BlacklistedItems => field ??= [];
+
         /// <summary>
         ///     Minimum number of items in the store rotation.
         /// </summary>
@@ -47,7 +60,7 @@ namespace StoreRotationConfig
         ///     The percentage chance for ANY item to be on sale in the store rotation. Setting this to '0' disables the entire
         ///     sales system.
         /// </summary>
-        public ConfigEntry<int> SALE_CHANCE { get; private set; }
+        public ConfigEntry<float> SALE_CHANCE { get; private set; }
 
         /// <summary>
         ///     The minimum number of items that can be on sale at a time.
@@ -92,8 +105,7 @@ namespace StoreRotationConfig
         public ConfigEntry<int> LINES_TO_SCROLL { get; private set; }
 
         /// <summary>
-        ///     Constructor for initializing plugin configuration. Registers instance in 'ConfigManager', binds entries to configuration file,
-        ///     and defines code to execute after a successful sync.
+        ///     Constructor for initializing plugin configuration.
         /// </summary>
         /// <param name="cfg">BepInEx configuration file.</param>
         public Config(ConfigFile cfg)
@@ -113,8 +125,8 @@ namespace StoreRotationConfig
             ITEM_BLACKLIST = cfg.Bind("General", "itemBlacklist", "", "The comma-separated names of items that will never show up in the store "
                 + "rotation. You're a mean one, Mr. Grinch.\nExample: \"Bee suit,Goldfish,Television\"");
 
-            SALE_CHANCE = cfg.Bind("Sales", "saleChance", 33, new ConfigDescription("The percentage chance for ANY "
-                + "item to be on sale in the store rotation. Setting this to '0' disables the entire sales system.", new AcceptableValueRange<int>(0, 100)));
+            SALE_CHANCE = cfg.Bind("Sales", "saleChance", 100 / 3.0f, new ConfigDescription("The percentage chance for ANY "
+                + "item to be on sale in the store rotation. Setting this to '0' disables the entire sales system.", new AcceptableValueRange<float>(0.0f, 100.0f)));
             MIN_SALE_ITEMS = cfg.Bind("Sales", "minSaleItems", 1, "The minimum number of items that can be on sale at a time.");
             MAX_SALE_ITEMS = cfg.Bind("Sales", "maxSaleItems", 5, "The maximum number of items that can be on sale at a time.");
             MIN_DISCOUNT = cfg.Bind("Sales", "minDiscount", 10, new ConfigDescription("The minimum discount to apply "
@@ -133,7 +145,11 @@ namespace StoreRotationConfig
             // ...
 
             // Reset cached text if 'linesToScroll' is updated in-game.
-            LINES_TO_SCROLL.SettingChanged += new((_, _) => TerminalScrollMousePatch.CurrentText = string.Empty);
+            LINES_TO_SCROLL.SettingChanged += static (_, _) => TerminalScrollMousePatch.CurrentText = string.Empty;
+
+            // Reset whitelisted and blacklisted items if they are updated in-game.
+            ITEM_WHITELIST.SettingChanged += static (_, _) => Plugin.Settings?.RefreshConfigLists();
+            ITEM_BLACKLIST.SettingChanged += static (_, _) => Plugin.Settings?.RefreshConfigLists();
 
             // Remove old config settings.
             cfg.OrphanedEntries.Clear();
@@ -141,6 +157,63 @@ namespace StoreRotationConfig
             // Re-enable saving and save config.
             cfg.SaveOnConfigSet = true;
             cfg.Save();
+        }
+
+        /// <summary>
+        ///     Refresh whitelisted and blacklisted items configuration.
+        /// </summary>
+        internal void RefreshConfigLists()
+        {
+            WhitelistedItems.Clear();
+            BlacklistedItems.Clear();
+
+            // Return if unlockable items are not yet loaded.
+            if (StartOfRound.Instance == null || StartOfRound.Instance.unlockablesList == null)
+            {
+                return;
+            }
+
+            // Split configured whitelisted and blacklisted items by comma, and remove all spaces.
+            string[] whitelist = ITEM_WHITELIST.Value.Split([',', ' '], StringSplitOptions.RemoveEmptyEntries),
+                blacklist = ITEM_BLACKLIST.Value.Split([',', ' '], StringSplitOptions.RemoveEmptyEntries);
+
+            // Iterate for every registered unlockable item.
+            for (int i = 0; i < StartOfRound.Instance.unlockablesList.unlockables?.Count; i++)
+            {
+                UnlockableItem? item = StartOfRound.Instance.unlockablesList.unlockables[i];
+
+                // Skip item if missing or lacking a valid Terminal node.
+                if (item == null || item.shopSelectionNode == null)
+                {
+                    continue;
+                }
+
+                // Obtain item Terminal display name and unlockable name, and remove all spaces.
+                string displayName = string.Join(string.Empty, item.shopSelectionNode.creatureName.Split(default(string[]), StringSplitOptions.RemoveEmptyEntries)),
+                    unlockableName = string.Join(string.Empty, item.unlockableName.Split(default(string[]), StringSplitOptions.RemoveEmptyEntries));
+
+                // Attempt to find item to whitelist using either Terminal display name or unlockable name.
+                int whitelistIndex = Array.FindIndex(whitelist, whitelistName => whitelistName.Equals(displayName, StringComparison.OrdinalIgnoreCase)
+                    || whitelistName.Equals(unlockableName, StringComparison.OrdinalIgnoreCase));
+
+                if (whitelistIndex != -1)
+                {
+                    // Add item to whitelist, if found.
+                    _ = WhitelistedItems.Add(item);
+
+                    continue;
+                }
+
+                // Attempt to find item to blacklist using either Terminal display name or unlockable name.
+                int blacklistIndex = Array.FindIndex(blacklist, blacklistName => blacklistName.Equals(displayName, StringComparison.OrdinalIgnoreCase)
+                    || blacklistName.Equals(unlockableName, StringComparison.OrdinalIgnoreCase));
+
+                if (blacklistIndex != -1)
+                {
+                    // Add item to blacklist, if found.
+                    _ = BlacklistedItems.Add(item);
+                }
+            }
         }
     }
 }

@@ -1,50 +1,59 @@
 using HarmonyLib;
+using StoreRotationConfig.Networking;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 
-using static StoreRotationConfig.Api.RotationSalesAPI;
-
 namespace StoreRotationConfig.Patches
 {
     /// <summary>
-    ///     Patches for adding sales to the store rotation.
+    ///     Patches for adding sales to the store rotation and applying their discounts.
     /// </summary>
     internal static class TerminalItemSalesPatches
     {
-        [HarmonyPatch(typeof(Terminal), nameof(Terminal.RotateShipDecorSelection))]
-        [HarmonyPostfix]
-        private static void SetRotationSales_Postfix(Terminal __instance)
+        /// <summary>
+        ///     Obtain sales for the current rotation, if any are rolled.
+        /// </summary>
+        /// <param name="itemsInRotation">Number of items in the current rotation.</param>
+        /// <returns>Array holding discount values for the current rotation, if any are rolled.</returns>
+        internal static int[]? RollSales(int itemsInRotation)
         {
-            if (!__instance.IsHost)
+            if (Plugin.Settings == null)
             {
-                return;
-            }
+                Plugin.Logger.LogError("Configuration could not be loaded or is missing! Store rotation won't work...");
 
-            // Return if 'saleChance' setting is disabled (set to '0').
-            if (Plugin.Settings.SALE_CHANCE.Value == 0)
-            {
-                return;
-            }
-
-            // Initialize 'Random' instance using the same seed as vanilla sales.
-            Random random = new(StartOfRound.Instance.randomMapSeed + 90);
-
-            // Return if no items are on sale for this rotation.
-            if (random.Next(0, 100) > Plugin.Settings.SALE_CHANCE.Value - 1)
-            {
-                Plugin.Logger.LogInfo("No items on sale for this rotation...");
-
-                return;
+                return null;
             }
 
             // Obtain values from the config file.
+            float saleChance = Math.Clamp(Plugin.Settings.SALE_CHANCE.Value, 0.0f, 100.0f);
             int minSaleItems = Math.Abs(Plugin.Settings.MIN_SALE_ITEMS.Value),
                 maxSaleItems = Math.Abs(Plugin.Settings.MAX_SALE_ITEMS.Value);
-            int minDiscount = Plugin.Settings.MIN_DISCOUNT.Value,
-                maxDiscount = Plugin.Settings.MAX_DISCOUNT.Value;
+            int minDiscount = Math.Clamp(Plugin.Settings.MIN_DISCOUNT.Value, 0, 100),
+                maxDiscount = Math.Clamp(Plugin.Settings.MAX_DISCOUNT.Value, 0, 100);
+            bool roundToNearestTen = Plugin.Settings.ROUND_TO_NEAREST_TEN.Value;
             // ...
+
+            // Return if sales are disabled (set to '0').
+            if (saleChance == 0)
+            {
+                return null;
+            }
+
+            // Initialize 'Random' instance using the same seed as vanilla sales.
+            Random salesRandom = new(StartOfRound.Instance.randomMapSeed + 90);
+
+            // Return if failed roll for any sales at all.
+            if ((float)salesRandom.NextDouble() > saleChance / 100.0f)
+            {
+                Plugin.Logger.LogInfo("No items on sale for this rotation...");
+
+                return null;
+            }
+
+            // Create array with discount values for this rotation.
+            int[] sales = new int[itemsInRotation];
 
             // Use 'minSaleItems' for 'maxSaleItems', if the former is greater than the latter.
             if (minSaleItems > maxSaleItems)
@@ -54,7 +63,7 @@ namespace StoreRotationConfig.Patches
                 maxSaleItems = minSaleItems;
             }
 
-            // Use 'minSaleItems' for 'maxDiscount', if the former is greater than the latter.
+            // Use 'minDiscount' for 'maxDiscount', if the former is greater than the latter.
             if (minDiscount > maxDiscount)
             {
                 Plugin.Logger.LogWarning("Value for 'minDiscount' is larger than 'maxDiscount', using it instead...");
@@ -63,43 +72,42 @@ namespace StoreRotationConfig.Patches
             }
 
             // Obtain number of items with sales for this rotation.
-            int itemsOnSale = random.Next(minSaleItems, maxSaleItems + 1);
+            int itemsOnSale = salesRandom.Next(minSaleItems, maxSaleItems + 1),
+                remainingItems = itemsOnSale;
 
             // Return if no items are on sale for this rotation.
             if (itemsOnSale <= 0)
             {
                 Plugin.Logger.LogInfo("No items on sale for this rotation...");
 
-                return;
+                return null;
             }
 
-            // Clear 'RotationSales' dictionary.
-            ClearSales();
-
-            // Clone the 'Terminal.ShipDecorSelection' list for item selection.
-            List<TerminalNode> storeRotation = [.. __instance.ShipDecorSelection];
-
-            // Iterate for every item that is to be on sale, exiting early if there are no more items in the 'storeRotation' cloned list.
-            for (int i = 0; i < itemsOnSale && storeRotation.Count != 0; i++)
+            // Iterate for every item present in the store rotation.
+            for (int i = 0; i < sales.Length && remainingItems != 0; i++)
             {
-                // Obtain random discount value to apply.
-                int discount = random.Next(minDiscount, maxDiscount + 1);
-
-                // Round discount to the nearest ten (like the regular store) if the 'roundToNearestTen' setting is enabled.
-                if (Plugin.Settings.ROUND_TO_NEAREST_TEN.Value)
+                if ((float)salesRandom.NextDouble() < ((float)remainingItems / (sales.Length - i)))
                 {
-                    discount = (int)Math.Round(discount / 10.0f) * 10;
+                    // Obtain random discount value to apply.
+                    int discount = salesRandom.Next(minDiscount, maxDiscount + 1);
+
+                    // Round discount to the nearest ten (like the regular store) if configured to do so.
+                    if (roundToNearestTen)
+                    {
+                        discount = (int)Math.Round(discount / 10.0f) * 10;
+                    }
+
+                    // Set discount at the current index.
+                    sales[i] = discount;
+
+                    // Set one less item to be given sales.
+                    remainingItems--;
                 }
-
-                // Obtain random index of the item to apply the discount to.
-                int index = random.Next(0, storeRotation.Count);
-
-                // Register item discount and remove it from the 'storeRotation' cloned list.
-                _ = AddItemDiscount(storeRotation[index], discount);
-                storeRotation.RemoveAt(index);
             }
 
-            Plugin.Logger.LogInfo($"{CountSales()} items on sale!");
+            Plugin.Logger.LogInfo($"{itemsOnSale - remainingItems} items on sale!");
+
+            return sales;
         }
 
         /// <summary>
@@ -145,36 +153,52 @@ namespace StoreRotationConfig.Patches
             .InstructionEnumeration();
         }
 
-        private static void ApplyDiscount(TerminalNode node, ref int totalCostOfItems)
+        /// <summary>
+        ///     Apply discount to the item being purchased, if it has one.
+        /// </summary>
+        /// <param name="unlockableNode"><c>TerminalNode</c> of the item being purchased.</param>
+        /// <param name="totalCostOfItems">Price of the item being purchased, as a ref parameter.</param>
+        private static void ApplyDiscount(TerminalNode unlockableNode, ref int totalCostOfItems)
         {
-            // Return if routing to a moon, or unlockable ID is invalid.
-            if (node.buyRerouteToMoon != -1 || StartOfRound.Instance == null || StartOfRound.Instance.unlockablesList == null
-                || StartOfRound.Instance.unlockablesList.unlockables == null || StartOfRound.Instance.unlockablesList.unlockables.Count <= node.shipUnlockableID)
+            // Return if routing to a moon.
+            if (unlockableNode.buyRerouteToMoon != -1)
             {
                 return;
             }
 
-            // Obtain item currently selected for purchase.
-            UnlockableItem? item = StartOfRound.Instance.unlockablesList.unlockables[node.shipUnlockableID];
+            List<TerminalNode>? shipDecorSelection = (Plugin.Terminal != null) ? Plugin.Terminal.ShipDecorSelection : null;
 
-            // Return if selected item was not found.
-            if (item == null)
-            {
-                Plugin.Logger.LogError($"Unlockable item at index {node.shipUnlockableID} missing!");
-
-                return;
-            }
-
-            // Return if 'salesChance' is disabled OR the 'RotationSales' dictionary doesn't contain a discount for the currently selected item.
-            if (Plugin.Settings == null || Plugin.Settings.SALE_CHANCE.Value == 0 || !IsOnSale(item.shopSelectionNode))
+            if (shipDecorSelection == null)
             {
                 return;
             }
 
-            // Obtain discounted item price and discount value.
-            totalCostOfItems = GetDiscountedPrice(item.shopSelectionNode, out int discount);
+            // Obtain index in the current store rotation for the purchased item.
+            int rotationIndex = (!unlockableNode.buyUnlockable) ? shipDecorSelection.IndexOf(unlockableNode)
+                : shipDecorSelection.FindIndex(node => node.shipUnlockableID == unlockableNode.shipUnlockableID);
 
-            Plugin.Logger.LogDebug($"Applying discount of {discount}% to '{item.shopSelectionNode.creatureName}'...");
+            if (rotationIndex == -1)
+            {
+                return;
+            }
+
+            if (StoreRotationNetworker.Instance == null || StoreRotationNetworker.Instance.StoreRotation == null)
+            {
+                Plugin.Logger.LogError($"StoreRotationNetworker instance is missing! No discount could be applied to '{unlockableNode.creatureName}'...");
+
+                return;
+            }
+
+            // Obtain synced information for the purchased item.
+            StoreRotationEntry entry = StoreRotationNetworker.Instance.StoreRotation[rotationIndex];
+
+            // Apply discounted price to the purchase, if there is a discount.
+            totalCostOfItems = entry.GetDiscountedPrice(unlockableNode);
+
+            if (entry.UnlockableDiscount > 0)
+            {
+                Plugin.Logger.LogDebug($"Applying discount of {entry.UnlockableDiscount}% to '{unlockableNode.creatureName}'...");
+            }
         }
 
         /// <summary>
@@ -211,6 +235,8 @@ namespace StoreRotationConfig.Patches
 
             FieldInfo itemCostInfo = typeof(TerminalNode).GetField(nameof(TerminalNode.itemCost), BindingFlags.Instance | BindingFlags.Public);
             _ = codeMatcher.MatchForward(useEnd: false,
+                new(OpCodes.Ldloc_S), // V_15
+                new(OpCodes.Callvirt), // List<TerminalNode>.get_Item()
                 new(OpCodes.Ldfld, itemCostInfo),
                 new(OpCodes.Box, typeof(int)));
 
@@ -221,25 +247,36 @@ namespace StoreRotationConfig.Patches
                 return instructions;
             }
 
+            CodeInstruction loadRotationIndex = codeMatcher.Instruction; // Ldloc.s V_15
+
             MethodInfo appendDiscountTagInfo = typeof(TerminalItemSalesPatches).GetMethod(nameof(AppendDiscountTag), BindingFlags.Static | BindingFlags.NonPublic);
-            return codeMatcher.SetInstructionAndAdvance(
+            return codeMatcher.Advance(2)
+            .SetInstructionAndAdvance(loadRotationIndex)
+            .SetInstruction(
                 new(OpCodes.Call, appendDiscountTagInfo))
-            .RemoveInstruction()
             .InstructionEnumeration();
         }
 
-        private static string AppendDiscountTag(TerminalNode item)
+        /// <summary>
+        ///     Append discount tag to an item being displayed in the <c>Terminal</c> store, if it has one.
+        /// </summary>
+        /// <param name="unlockableNode"><c>TerminalNode</c> of the item being displayed.</param>
+        /// <param name="rotationIndex">Index in the current store rotation of the item being displayed.</param>
+        /// <returns>Price of the item being displayed, with its discount tag included.</returns>
+        private static string AppendDiscountTag(TerminalNode unlockableNode, int rotationIndex)
         {
-            // Return string containing full cost if 'salesChance' is disabled OR the item about to be displayed isn't currently on sale.
-            if (Plugin.Settings == null || Plugin.Settings.SALE_CHANCE.Value == 0 || !IsOnSale(item, out int discount))
+            if (StoreRotationNetworker.Instance == null || StoreRotationNetworker.Instance.StoreRotation == null)
             {
-                return $"{item.itemCost}";
+                Plugin.Logger.LogError($"StoreRotationNetworker instance is missing! No discount could be applied to '{unlockableNode.creatureName}'...");
+
+                return $"{unlockableNode.itemCost}";
             }
 
-            Plugin.Logger.LogDebug($"Appending sale tag of '{discount}%' to {item.creatureName}...");
+            // Obtain synced information for the item being displayed.
+            StoreRotationEntry entry = StoreRotationNetworker.Instance.StoreRotation[rotationIndex];
 
-            // Return string containing the discounted price and discount amount to display in the store page. 
-            return GetTerminalString(item);
+            // Return formatted price string to display.
+            return entry.GetTerminalPriceString(unlockableNode);
         }
     }
 }
