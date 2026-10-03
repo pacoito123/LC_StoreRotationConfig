@@ -117,7 +117,7 @@ namespace StoreRotationConfig
             MIN_ITEMS = cfg.Bind("General", "minItems", 8, "Minimum number of items in the store rotation.");
             MAX_ITEMS = cfg.Bind("General", "maxItems", 12, "Maximum number of items in the store rotation.");
             STOCK_ALL = cfg.Bind("General", "stockAll", false, "Make every item available in the store rotation.");
-            REMOVE_PURCHASED = cfg.Bind("General", "removePurchased", false, "Remove purchased items from the current and future store rotations."
+            REMOVE_PURCHASED = cfg.Bind("General", "removePurchased", true, "Remove purchased items from the current and future store rotations."
                 + "If enabled, prevents purchased items from showing up again in future store rotations, and removes them from the current one.");
             ITEM_WHITELIST = cfg.Bind("General", "itemWhitelist", "", "The comma-separated names of items that will be guaranteed to show up "
                 + "in every store rotation. Whitelisted items are always added on top of the range defined by the 'minItems' and 'maxItems' settings, and take priority over the blacklist. "

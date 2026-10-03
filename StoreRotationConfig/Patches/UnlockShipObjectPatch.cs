@@ -6,9 +6,9 @@ using Unity.Netcode;
 namespace StoreRotationConfig.Patches
 {
     /// <summary>
-    ///     Patches for removing purchased items from current and future store rotations.
+    ///     Patch for removing purchased items from current and future store rotations.
     /// </summary>
-    internal static class UnlockShipObjectPatches
+    internal static class UnlockShipObjectPatch
     {
         [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.BuyShipUnlockableServerRpc))]
         [HarmonyPrefix]

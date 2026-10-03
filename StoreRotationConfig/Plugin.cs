@@ -57,7 +57,7 @@ namespace StoreRotationConfig
                 Harmony.PatchAll(typeof(RotateShipDecorSelectionPatch));
                 Harmony.PatchAll(typeof(TerminalItemSalesPatches));
                 Harmony.PatchAll(typeof(TerminalScrollMousePatch));
-                Harmony.PatchAll(typeof(UnlockShipObjectPatches));
+                Harmony.PatchAll(typeof(UnlockShipObjectPatch));
                 // ...
 
                 Logger.LogInfo($"{PLUGIN_NAME} v{VERSION} loaded!");

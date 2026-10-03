@@ -1,5 +1,9 @@
 # Changelog
 
+## [3.0.0]
+
+WIP
+
 ## [2.6.1]
 
 Actually included the updated plugin file this time...
