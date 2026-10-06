@@ -88,6 +88,11 @@ namespace StoreRotationConfig
         public ConfigEntry<bool> ROUND_TO_NEAREST_TEN { get; private set; }
 
         /// <summary>
+        ///     Display rotation store discounts in advertisements (like regular tools).
+        /// </summary>
+        public ConfigEntry<bool> DISPLAY_AD_DISCOUNTS { get; private set; }
+
+        /// <summary>
         ///     Sort every item in the store rotation alphabetically.
         /// </summary>
         public ConfigEntry<bool> SORT_ITEMS { get; private set; }
@@ -135,6 +140,8 @@ namespace StoreRotationConfig
                 + "to items on sale.", new AcceptableValueRange<int>(1, 100)));
             ROUND_TO_NEAREST_TEN = cfg.Bind("Sales", "roundToNearestTen", true, "Round rotation store discounts to the nearest ten "
                 + "(like the regular store).");
+            DISPLAY_AD_DISCOUNTS = cfg.Bind("Sales", "displayAdDiscounts", true, "Display rotation store discounts in advertisements "
+                + "(like regular tools).");
 
             SORT_ITEMS = cfg.Bind("Miscellaneous", "sortItems", false, "Sort every item in the store rotation alphabetically.");
             RELATIVE_SCROLL = cfg.Bind("Miscellaneous", "relativeScroll", true, "Adapt terminal scroll to the number of lines in the current terminal "
@@ -147,9 +154,26 @@ namespace StoreRotationConfig
             // Reset cached text if 'linesToScroll' is updated in-game.
             LINES_TO_SCROLL.SettingChanged += static (_, _) => TerminalScrollMousePatch.CurrentText = string.Empty;
 
-            // Reset whitelisted and blacklisted items if they are updated in-game.
-            ITEM_WHITELIST.SettingChanged += static (_, _) => Plugin.Settings?.RefreshConfigLists();
-            ITEM_BLACKLIST.SettingChanged += static (_, _) => Plugin.Settings?.RefreshConfigLists();
+            // Refresh whitelisted and blacklisted items if they are updated in-game.
+            ITEM_WHITELIST.SettingChanged += RefreshConfigLists;
+            ITEM_BLACKLIST.SettingChanged += RefreshConfigLists;
+
+            // Refresh store rotation if settings are updated in-game.
+            MIN_ITEMS.SettingChanged += RefreshRotation;
+            MAX_ITEMS.SettingChanged += RefreshRotation;
+            STOCK_ALL.SettingChanged += RefreshRotation;
+            REMOVE_PURCHASED.SettingChanged += RefreshRotation;
+            ITEM_BLACKLIST.SettingChanged += RefreshRotation;
+
+            SALE_CHANCE.SettingChanged += RefreshRotation;
+            MIN_SALE_ITEMS.SettingChanged += RefreshRotation;
+            MAX_SALE_ITEMS.SettingChanged += RefreshRotation;
+            MIN_DISCOUNT.SettingChanged += RefreshRotation;
+            MAX_DISCOUNT.SettingChanged += RefreshRotation;
+            ROUND_TO_NEAREST_TEN.SettingChanged += RefreshRotation;
+
+            SORT_ITEMS.SettingChanged += RefreshRotation;
+            // ...
 
             // Remove old config settings.
             cfg.OrphanedEntries.Clear();
@@ -157,6 +181,17 @@ namespace StoreRotationConfig
             // Re-enable saving and save config.
             cfg.SaveOnConfigSet = true;
             cfg.Save();
+        }
+
+        /// <summary>
+        ///     Refresh store rotation, if hosting the server.
+        /// </summary>
+        private static void RefreshRotation(object obj, EventArgs args)
+        {
+            if (StartOfRound.Instance != null && StartOfRound.Instance.IsHost && Plugin.Terminal != null)
+            {
+                Plugin.Terminal.RotateShipDecorSelection();
+            }
         }
 
         /// <summary>
@@ -214,6 +249,14 @@ namespace StoreRotationConfig
                     _ = BlacklistedItems.Add(item);
                 }
             }
+        }
+
+        /// <summary>
+        ///     Refresh whitelisted and blacklisted items configuration.
+        /// </summary>
+        private void RefreshConfigLists(object obj, EventArgs args)
+        {
+            RefreshConfigLists();
         }
     }
 }

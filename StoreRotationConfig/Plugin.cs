@@ -55,8 +55,10 @@ namespace StoreRotationConfig
 
                 // Apply all patches.
                 Harmony.PatchAll(typeof(RotateShipDecorSelectionPatch));
+                // Harmony.PatchAll(typeof(RotateTerminalCommandPatches));
                 Harmony.PatchAll(typeof(TerminalItemSalesPatches));
                 Harmony.PatchAll(typeof(TerminalScrollMousePatch));
+                Harmony.PatchAll(typeof(UnlockableDisplayAdsPatches));
                 Harmony.PatchAll(typeof(UnlockShipObjectPatch));
                 // ...
 

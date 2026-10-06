@@ -192,12 +192,12 @@ namespace StoreRotationConfig.Patches
             // Obtain synced information for the purchased item.
             StoreRotationEntry entry = StoreRotationNetworker.Instance.StoreRotation[rotationIndex];
 
-            // Apply discounted price to the purchase, if there is a discount.
-            totalCostOfItems = entry.GetDiscountedPrice(unlockableNode);
-
             if (entry.UnlockableDiscount > 0)
             {
-                Plugin.Logger.LogDebug($"Applying discount of {entry.UnlockableDiscount}% to '{unlockableNode.creatureName}'...");
+                // Set discounted price for the purchase, if there is a discount.
+                totalCostOfItems = entry.GetDiscountedPrice(unlockableNode);
+
+                Plugin.Logger.LogDebug($"Applying discount of '{entry.UnlockableDiscount}%' to '{unlockableNode.creatureName}': '{entry.UnlockablePrice}' -> '{totalCostOfItems}'");
             }
         }
 
