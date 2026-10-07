@@ -152,7 +152,7 @@ namespace StoreRotationConfig
             // ...
 
             // Reset cached text if 'linesToScroll' is updated in-game.
-            LINES_TO_SCROLL.SettingChanged += static (_, _) => TerminalScrollMousePatch.CurrentText = string.Empty;
+            LINES_TO_SCROLL.SettingChanged += static (_, _) => TerminalScrollMousePatch.currentText = string.Empty;
 
             // Refresh whitelisted and blacklisted items if they are updated in-game.
             ITEM_WHITELIST.SettingChanged += RefreshConfigLists;

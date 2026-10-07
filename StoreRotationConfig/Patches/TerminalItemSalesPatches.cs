@@ -168,14 +168,9 @@ namespace StoreRotationConfig.Patches
 
             List<TerminalNode>? shipDecorSelection = (Plugin.Terminal != null) ? Plugin.Terminal.ShipDecorSelection : null;
 
-            if (shipDecorSelection == null)
-            {
-                return;
-            }
-
             // Obtain index in the current store rotation for the purchased item.
-            int rotationIndex = (!unlockableNode.buyUnlockable) ? shipDecorSelection.IndexOf(unlockableNode)
-                : shipDecorSelection.FindIndex(node => node.shipUnlockableID == unlockableNode.shipUnlockableID);
+            int rotationIndex = (!unlockableNode.buyUnlockable) ? shipDecorSelection?.IndexOf(unlockableNode) ?? -1
+                : shipDecorSelection?.FindIndex(node => node.shipUnlockableID == unlockableNode.shipUnlockableID) ?? -1;
 
             if (rotationIndex == -1)
             {

@@ -19,7 +19,7 @@ namespace StoreRotationConfig.Patches
         /// <returns>Whether the item being displayed has a discount available or not.</returns>
         private static bool TryGetDiscount(int rotationIndex, ref string saleText)
         {
-            if (Plugin.Settings == null || !Plugin.Settings.DISPLAY_AD_DISCOUNTS.Value)
+            if (Plugin.Settings?.DISPLAY_AD_DISCOUNTS.Value != true)
             {
                 return false;
             }

@@ -21,20 +21,14 @@ namespace StoreRotationConfig.Patches
             }
 
             // Return if unlockable ID is invalid, or purchased items are not configured to be removed.
-            if (unlockableID < 0 || Plugin.Settings == null || !Plugin.Settings.REMOVE_PURCHASED.Value)
+            if (unlockableID < 0 || Plugin.Settings?.REMOVE_PURCHASED.Value != true)
             {
                 return;
             }
 
-            if (Plugin.Terminal == null)
-            {
-                Plugin.Logger.LogError("Could not find Terminal instance! Store rotation doesn't exist...");
-
-                return;
-            }
+            List<TerminalNode>? shipDecorSelection = (Plugin.Terminal != null) ? Plugin.Terminal.ShipDecorSelection : null;
 
             // Obtain index in the current store rotation for the purchased item.
-            List<TerminalNode>? shipDecorSelection = Plugin.Terminal.ShipDecorSelection;
             int rotationIndex = shipDecorSelection?.FindIndex(node => node != null && node.shipUnlockableID == unlockableID) ?? -1;
 
             // Return if item being purchased is not present in the current store rotation.

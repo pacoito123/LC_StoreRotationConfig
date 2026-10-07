@@ -35,13 +35,8 @@ namespace StoreRotationConfig.Compatibility
 
             List<TerminalNode>? shipDecorSelection = (Plugin.Terminal != null) ? Plugin.Terminal.ShipDecorSelection : null;
 
-            if (shipDecorSelection == null)
-            {
-                return;
-            }
-
             // Obtain index in the current store rotation for the displayed item.
-            int rotationIndex = shipDecorSelection.IndexOf(___terminalNode);
+            int rotationIndex = shipDecorSelection?.IndexOf(___terminalNode) ?? -1;
 
             if (rotationIndex == -1)
             {
@@ -74,13 +69,8 @@ namespace StoreRotationConfig.Compatibility
 
             List<TerminalNode>? shipDecorSelection = (Plugin.Terminal != null) ? Plugin.Terminal.ShipDecorSelection : null;
 
-            if (shipDecorSelection == null)
-            {
-                return;
-            }
-
             // Obtain index in the current store rotation for the displayed item.
-            int rotationIndex = shipDecorSelection.IndexOf(item.terminalNode);
+            int rotationIndex = shipDecorSelection?.IndexOf(item.terminalNode) ?? -1;
 
             if (rotationIndex == -1)
             {

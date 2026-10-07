@@ -1,7 +1,6 @@
 using GameNetcodeStuff;
 using HarmonyLib;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine.InputSystem;
@@ -15,7 +14,7 @@ namespace StoreRotationConfig.Patches
     internal static class TerminalScrollMousePatch
     {
         // Text shown in the current terminal page, to determine if scroll amount needs to be updated.
-        public static string CurrentText { get; internal set; } = string.Empty;
+        public static string currentText = string.Empty;
 
         // Amount to add/subtract from the terminal scrollbar, relative to the number of lines in the current terminal page.
         private static float scrollAmount = 1 / 3.0f;
@@ -28,7 +27,7 @@ namespace StoreRotationConfig.Patches
         private static void ScrollMouse_performed(Scrollbar scrollbar, float scrollDirection)
         {
             // Perform vanilla scroll if the 'relativeScroll' setting is disabled.
-            if (Plugin.Terminal == null || Plugin.Settings == null || !Plugin.Settings.RELATIVE_SCROLL.Value)
+            if (Plugin.Settings?.RELATIVE_SCROLL.Value != true)
             {
                 // Increment scrollbar value by vanilla scroll amount (a third of the page).
                 scrollbar.value += scrollDirection / 3.0f;
@@ -37,13 +36,13 @@ namespace StoreRotationConfig.Patches
             }
 
             // Check if text currently shown in the terminal has changed, to avoid calculating the scroll amount more than once.
-            if (!string.Equals(Plugin.Terminal.currentText, CurrentText, System.StringComparison.Ordinal))
+            if (Plugin.Terminal != null && !string.Equals(Plugin.Terminal.currentText, currentText, System.StringComparison.Ordinal))
             {
                 // Cache text currently shown in the terminal.
-                CurrentText = Plugin.Terminal.currentText;
+                currentText = Plugin.Terminal.currentText;
 
                 // Calculate relative scroll amount using the number of lines in the current terminal page.
-                int numLines = CurrentText.Count(c => c.Equals('\n')) + 1;
+                int numLines = currentText.Split('\n').Length;
                 scrollAmount = Plugin.Settings.LINES_TO_SCROLL.Value / (float)numLines;
 
                 Plugin.Logger.LogDebug($"Setting terminal scroll amount to '{scrollAmount}'!");

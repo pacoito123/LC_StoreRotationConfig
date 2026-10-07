@@ -107,13 +107,8 @@ namespace StoreRotationConfig.Compatibility
 
             List<TerminalNode>? shipDecorSelection = (Plugin.Terminal != null) ? Plugin.Terminal.ShipDecorSelection : null;
 
-            if (shipDecorSelection == null)
-            {
-                return;
-            }
-
             // Obtain index in the current store rotation for the displayed item.
-            int rotationIndex = shipDecorSelection.IndexOf(unlockableNode);
+            int rotationIndex = shipDecorSelection?.IndexOf(unlockableNode) ?? -1;
 
             if (rotationIndex == -1)
             {

@@ -51,15 +51,8 @@ namespace StoreRotationConfig.Networking
                 return;
             }
 
-            if (Plugin.Settings == null)
-            {
-                Plugin.Logger.LogError("Configuration could not be loaded or is missing! Store rotation won't work...");
-
-                return;
-            }
-
             // Parse whitelisted and blacklisted items from config file.
-            Plugin.Settings.RefreshConfigLists();
+            Plugin.Settings?.RefreshConfigLists();
         }
 
         /// <summary>
