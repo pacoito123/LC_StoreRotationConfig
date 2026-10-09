@@ -1,6 +1,7 @@
 using HarmonyLib;
 using StoreRotationConfig.Networking;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using TerminalStuff.StoreTweaks;
 
 namespace StoreRotationConfig.Compatibility
@@ -21,6 +22,7 @@ namespace StoreRotationConfig.Compatibility
         }
         private static bool? _enabled;
 
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         [HarmonyPatch(typeof(StoreInfo), nameof(StoreInfo.PriceChecks))]
         [HarmonyPostfix]
         private static void PriceChecks_Postfix(StoreInfo __instance, TerminalNode ___terminalNode)
@@ -58,6 +60,7 @@ namespace StoreRotationConfig.Compatibility
             __instance.OnSale = entry.UnlockableDiscount > 0;
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         [HarmonyPatch(typeof(StorePlus), nameof(StorePlus.GetSalesPercentage))]
         [HarmonyPostfix]
         private static void GetSalesPercentage_Postfix(ref int __result, StoreInfo item)

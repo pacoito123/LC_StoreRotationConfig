@@ -45,7 +45,9 @@
         <PackageReference Include="LethalCompany.GameLibs.Steam" Version="81.0.5-ngd.0" PrivateAssets="all" Publicize="true" />
 
         <PackageReference Include="darmuh-darmuhsTerminalStuff" Version="3.10.*" PrivateAssets="all" Publicize="true" />
+        <!-- <PackageReference Include="WhiteSpike-Interactive_Store" Version="1.0.*" PrivateAssets="all" Publicize="true" /> -->
         <PackageReference Include="mrov.MrovLib" Version="0.4.*" PrivateAssets="all" />
+        <PackageReference Include="mrov-TerminalFormatter" Version="0.3.*" PrivateAssets="all" Publicize="true" />
         <PackageReference Include="mrov-TerminalUtils" Version="0.0.*" PrivateAssets="all" />
     </ItemGroup>
 

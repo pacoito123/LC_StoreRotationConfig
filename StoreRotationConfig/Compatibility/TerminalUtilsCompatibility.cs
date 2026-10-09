@@ -94,6 +94,7 @@ namespace StoreRotationConfig.Compatibility
         /// </summary>
         /// <param name="thing">Item being displayed.</param>
         /// <param name="priceWithDiscount">Price of the item being displayed, as a ref parameter.</param>
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         private static void AppendDiscountTag(BuyableThing thing, ref string priceWithDiscount)
         {
             TerminalNode? unlockableNode = (thing is BuyableUnlockable unlockable) ? unlockable.Unlockable?.shopSelectionNode

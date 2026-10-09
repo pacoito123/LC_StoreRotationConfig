@@ -1,7 +1,6 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
-using StoreRotationConfig.Compatibility;
 using StoreRotationConfig.Networking;
 using StoreRotationConfig.Patches;
 using System;
@@ -14,8 +13,6 @@ namespace StoreRotationConfig
     ///     Configure the number of items in each store rotation, show them all, remove purchases, sort them, and/or enable sales for them.
     /// </summary>
     [BepInPlugin(PLUGIN_GUID, PLUGIN_NAME, VERSION)]
-    [BepInDependency(TerminalStuff.Plugin.Id, BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInDependency(TerminalUtils.MyPluginInfo.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
     public sealed class Plugin : BaseUnityPlugin
     {
         /// <summary>
@@ -65,29 +62,8 @@ namespace StoreRotationConfig
                 Harmony.PatchAll(typeof(UnlockShipObjectPatch));
                 // ...
 
-                if (TerminalStuffCompatibility.Enabled)
-                {
-                    try
-                    {
-                        Harmony.PatchAll(typeof(TerminalStuffCompatibility));
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.LogError($"Error while patching compatibility for 'TerminalStuff': {e}");
-                    }
-                }
-
-                if (TerminalUtilsCompatibility.Enabled)
-                {
-                    try
-                    {
-                        Harmony.PatchAll(typeof(TerminalUtilsCompatibility));
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.LogError($"Error while patching compatibility for 'TerminalUtils': {e}");
-                    }
-                }
+                // Apply compatibility patches.
+                Harmony.PatchAll(typeof(MenuManagerPatch));
 
                 Logger.LogInfo($"{PLUGIN_NAME} v{VERSION} loaded!");
             }
