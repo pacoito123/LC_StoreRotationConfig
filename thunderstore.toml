@@ -4,7 +4,7 @@ schemaVersion = "0.0.1"
 [package]
 namespace = "pacoito"
 name = "StoreRotationConfig"
-description = "[v81!] Configure the number of items in each store rotation, show them all, remove purchases, sort them, and/or enable sales for them. Also includes a fix for the terminal scrolling too far and skipping lines."
+description = "[v81] Configure the number of items in each store rotation, show them all, remove purchases, sort them, and/or enable sales for them. Also includes a fix for the terminal scrolling too far and skipping lines."
 websiteUrl = "https://github.com/pacoito123/LC_StoreRotationConfig"
 containsNsfwContent = false
 

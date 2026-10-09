@@ -2,7 +2,20 @@
 
 ## [3.0.0]
 
-WIP
+Rewritten and updated for v81!
+
+- Completely redid all networking and syncing with clients!
+  - Now using a `NetworkList` to sync the store rotation itself, instead of relying on [CSync](https://thunderstore.io/c/lethal-company/p/Sigurd/CSync) to sync config settings.
+- Made rotating item discounts able to be displayed in advertisements shown to players, like regular tools.
+  - Can be disabled by toggling the `displayAdDiscounts` setting.
+- Made nearly all config settings apply immediately after being changed in-game.
+- Made `removePurchased` setting enabled by default.
+- Rewrote and/or simplified all Transpilers a bit.
+- Refactored a lot of code in general.
+- Removed `RotationItemsAPI` and `RotationSalesAPI` classes, for they are no longer being used.
+- Removed `SyncShipUnlockablesPatches`, since syncing is now handled by the `NetworkList`.
+- Added compatibility with [darmuhsTerminalStuff](https://thunderstore.io/c/lethal-company/p/darmuh/darmuhsTerminalStuff) to display and apply rotation sales in the `StorePlus` page.
+- Added compatibility with [TerminalFormatter](https://thunderstore.io/c/lethal-company/p/mrov/TerminalFormatter) (and [TerminalUtils](https://thunderstore.io/c/lethal-company/p/mrov/TerminalUtils)) to display and apply rotation sales in the overridden store page.
 
 ## [2.6.1]
 

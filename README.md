@@ -33,7 +33,7 @@ The store rotation can be displayed in alphabetical order by enabling the `sortI
 
 Items in the rotating shop can be configured to occasionally go on sale, just like regular store items!
 
-The `saleChance` setting (**33%** by default) controls the percentage chance for rotating items to go on sale, with the sales system disabling itself completely if set to **0**. The number of items that can be on sale at a time can be configured by the `minSaleItems` and `maxSaleItems` settings (**1-5** by default), and the amount that can be discounted can be configured by the `minDiscount` and `maxDiscount` (**10-50%** by default). Whether or not discounts should be rounded to the nearest ten, like the regular store, is determined by the `roundToNearestTen` (**on** by default) setting.
+The `saleChance` setting (**33%** by default) controls the percentage chance for rotating items to go on sale, with the sales system disabling itself completely if set to **0**. The number of items that can be on sale at a time can be configured by the `minSaleItems` and `maxSaleItems` settings (**1-5** by default), and the amount that can be discounted can be configured by the `minDiscount` and `maxDiscount` (**10-50%** by default). Whether or not discounts should be rounded to the nearest ten, like the regular store, is determined by the `roundToNearestTen` (**on** by default) setting. The `displayAdDiscounts` setting (**on** by default) determines if discounts should show up in advertisements, like regular tools.
 
 ### Terminal scrolling
 
